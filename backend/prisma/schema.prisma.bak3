@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model cart_items {
+  id         Int      @id @default(autoincrement())
+  cart_id    Int
+  product_id Int
+  quantity   Int
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  carts      carts    @relation(fields: [cart_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_cart_item_cart")
+  products   products @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_cart_item_product")
+
+  @@unique([cart_id, product_id], map: "unique_cart_product")
+}
+
+model carts {
+  id         Int          @id @default(autoincrement())
+  user_id    Int          @unique
+  created_at DateTime     @default(now()) @db.Timestamp(6)
+  updated_at DateTime     @default(now()) @db.Timestamp(6)
+  cart_items cart_items[]
+  users      users        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_cart_user")
+}
+
+model categories {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique @db.VarChar(100)
+  slug        String     @unique @db.VarChar(120)
+  description String?
+  created_at  DateTime   @default(now()) @db.Timestamp(6)
+  updated_at  DateTime   @default(now()) @db.Timestamp(6)
+  products    products[]
+}
+
+model inventory {
+  id         Int      @id @default(autoincrement())
+  product_id Int      @unique
+  quantity   Int      @default(0)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  products   products @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_inventory_product")
+}
+
+model order_items {
+  id         Int      @id @default(autoincrement())
+  order_id   Int
+  product_id Int
+  quantity   Int
+  price      Decimal  @db.Decimal(12, 2)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  orders     orders   @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_order_item_order")
+  products   products @relation(fields: [product_id], references: [id], onUpdate: NoAction, map: "fk_order_item_product")
+}
+
+model orders {
+  id             Int            @id @default(autoincrement())
+  user_id        Int
+  status         order_status   @default(PENDING)
+  payment_status payment_status @default(PENDING)
+  total          Decimal        @db.Decimal(12, 2)
+  created_at     DateTime       @default(now()) @db.Timestamp(6)
+  updated_at     DateTime       @default(now()) @db.Timestamp(6)
+  order_items    order_items[]
+  users          users          @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "fk_order_user")
+  payments       payments[]
+  reviews        product_reviews[]
+}
+
+model payments {
+  id              Int            @id @default(autoincrement())
+  order_id        Int
+  provider        String         @db.VarChar(50)
+  provider_ref    String         @unique @db.VarChar(255)
+  amount          Decimal        @db.Decimal(12, 2)
+  currency        String         @default("AOA") @db.VarChar(3)
+  status          payment_status @default(PENDING)
+  metadata        Json?
+  idempotency_key String?        @unique @db.VarChar(255)
+  created_at      DateTime       @default(now()) @db.Timestamp(6)
+  updated_at      DateTime       @default(now()) @db.Timestamp(6)
+  orders          orders         @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_order")
+
+  @@index([order_id])
+  @@index([status])
+}
+
+model product_reviews {
+  id         Int      @id @default(autoincrement())
+  product_id Int
+  user_id    Int
+  order_id   Int
+  rating     Int      @db.SmallInt
+  comment    String?  @db.VarChar(1000)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  products   products @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_review_product")
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_review_user")
+  orders     orders   @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_review_order")
+
+  @@unique([user_id, product_id, order_id], map: "unique_review_per_order")
+  @@index([product_id])
+  @@index([user_id])
+}
+
+model products {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(150)
+  slug            String            @unique @db.VarChar(180)
+  description     String?
+  price           Decimal           @db.Decimal(12, 2)
+  category_id     Int
+  image_url       String?
+  is_active       Boolean           @default(true)
+  created_at      DateTime          @default(now()) @db.Timestamp(6)
+  updated_at      DateTime          @default(now()) @db.Timestamp(6)
+  cart_items      cart_items[]
+  inventory       inventory?
+  order_items     order_items[]
+  reviews         product_reviews[]
+  categories      categories        @relation(fields: [category_id], references: [id], onUpdate: NoAction, map: "fk_product_category")
+  stock_movements stock_movements[]
+}
+
+model stock_movements {
+  id         Int                 @id @default(autoincrement())
+  product_id Int
+  type       stock_movement_type
+  quantity   Int
+  reason     String?             @db.VarChar(255)
+  created_at DateTime            @default(now()) @db.Timestamp(6)
+  products   products            @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_stock_product")
+}
+
+model users {
+  id         Int               @id @default(autoincrement())
+  name       String            @db.VarChar(100)
+  email      String            @unique @db.VarChar(150)
+  password   String            @db.VarChar(255)
+  role       user_role         @default(CUSTOMER)
+  created_at DateTime          @default(now()) @db.Timestamp(6)
+  updated_at DateTime          @default(now()) @db.Timestamp(6)
+  carts      carts?
+  orders     orders[]
+  reviews    product_reviews[]
+}
+
+enum order_status {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum payment_status {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum stock_movement_type {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+enum user_role {
+  CUSTOMER
+  ADMIN
+}

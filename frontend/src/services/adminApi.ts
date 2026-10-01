@@ -1,0 +1,169 @@
+import { api } from './api';
+import {
+  AdminProduct,
+  AdminOrder,
+  AdminUser,
+  DashboardData,
+  StockMovement,
+  InventoryItem,
+  PaginatedResponse,
+  SingleResponse,
+} from '../types/admin';
+
+export const adminApi = {
+  // ===== DASHBOARD =====
+  async getDashboard(): Promise<DashboardData> {
+    const response = await api.get<SingleResponse<DashboardData>>('/admin/dashboard');
+    return response.data.data;
+  },
+
+  // ===== PRODUCTS =====
+  async getProducts(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    category?: number;
+    status?: 'all' | 'active' | 'inactive';
+    lowStock?: boolean;
+    sort?: string;
+  }): Promise<PaginatedResponse<AdminProduct>> {
+    const response = await api.get<PaginatedResponse<AdminProduct>>('/admin/products', { params });
+    return response.data;
+  },
+
+  async activateProduct(id: number): Promise<AdminProduct> {
+    const response = await api.patch<SingleResponse<AdminProduct>>(`/admin/products/${id}/activate`);
+    return response.data.data;
+  },
+
+  async deactivateProduct(id: number): Promise<AdminProduct> {
+    const response = await api.patch<SingleResponse<AdminProduct>>(`/admin/products/${id}/deactivate`);
+    return response.data.data;
+  },
+
+    async createProduct(data: {
+    name: string;
+    description?: string;
+    price: number;
+    categoryId: number;
+    imageUrl?: string;
+    isActive?: boolean;
+    initialStock?: number;
+  }): Promise<AdminProduct> {
+    const response = await api.post<SingleResponse<AdminProduct>>('/products', data);
+    return response.data.data;
+  },
+
+  async updateProduct(id: number, data: {
+    name?: string;
+    description?: string;
+    price?: number;
+    categoryId?: number;
+    imageUrl?: string;
+    isActive?: boolean;
+  }): Promise<AdminProduct> {
+    const response = await api.put<SingleResponse<AdminProduct>>(`/products/${id}`, data);
+    return response.data.data;
+  },
+
+  // ===== INVENTORY =====
+  async getInventory(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    lowStock?: boolean;
+    sort?: string;
+  }): Promise<PaginatedResponse<InventoryItem>> {
+    const response = await api.get<PaginatedResponse<InventoryItem>>('/admin/inventory', { params });
+    return response.data;
+  },
+
+  async stockIn(productId: number, data: { quantity: number; reason?: string }): Promise<any> {
+    const response = await api.post(`/admin/inventory/${productId}/in`, data);
+    return response.data;
+  },
+
+  async stockAdjust(productId: number, data: { quantity: number; reason: string }): Promise<any> {
+    const response = await api.post(`/admin/inventory/${productId}/adjust`, data);
+    return response.data;
+  },
+
+  // ===== STOCK MOVEMENTS =====
+  async getStockMovements(params: {
+    page?: number;
+    limit?: number;
+    productId?: number;
+    type?: 'IN' | 'OUT' | 'ADJUSTMENT';
+    sort?: string;
+  }): Promise<PaginatedResponse<StockMovement>> {
+    const response = await api.get<PaginatedResponse<StockMovement>>('/admin/stock-movements', { params });
+    return response.data;
+  },
+
+  // ===== ORDERS =====
+  async getOrders(params: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    paymentStatus?: string;
+    search?: string;
+    sort?: string;
+  }): Promise<PaginatedResponse<AdminOrder>> {
+    const response = await api.get<PaginatedResponse<AdminOrder>>('/admin/orders', { params });
+    return response.data;
+  },
+
+  async getOrderById(id: number): Promise<AdminOrder> {
+    const response = await api.get<SingleResponse<AdminOrder>>(`/admin/orders/${id}`);
+    return response.data.data;
+  },
+
+  async updateOrderStatus(id: number, status: string): Promise<AdminOrder> {
+    const response = await api.put<SingleResponse<AdminOrder>>(`/admin/orders/${id}/status`, { status });
+    return response.data.data;
+  },
+
+  async updatePaymentStatus(id: number, paymentStatus: string): Promise<AdminOrder> {
+    const response = await api.put<SingleResponse<AdminOrder>>(`/admin/orders/${id}/payment-status`, { paymentStatus });
+    return response.data.data;
+  },
+
+  // ===== USERS =====
+  async getUsers(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    sort?: string;
+  }): Promise<PaginatedResponse<AdminUser>> {
+    const response = await api.get<PaginatedResponse<AdminUser>>('/admin/users', { params });
+    return response.data;
+  },
+
+  async getUserById(id: number): Promise<AdminUser> {
+    const response = await api.get<SingleResponse<AdminUser>>(`/admin/users/${id}`);
+    return response.data.data;
+  },
+};
+
+// ===== CATEGORIES (para AdminCategories) =====
+export const categoryApi = {
+  async list(): Promise<{ id: number; name: string; slug: string; description: string | null; created_at: string }[]> {
+    const response = await api.get('/categories');
+    return response.data.data;
+  },
+
+  async create(data: { name: string; description?: string; slug?: string }): Promise<any> {
+    const response = await api.post('/categories', data);
+    return response.data.data;
+  },
+
+  async update(id: number, data: { name?: string; description?: string; slug?: string }): Promise<any> {
+    const response = await api.put(`/categories/${id}`, data);
+    return response.data.data;
+  },
+
+  async remove(id: number): Promise<void> {
+    await api.delete(`/categories/${id}`);
+  },
+};
