@@ -11,6 +11,7 @@ import PaymentTimer from '../components/payment/PaymentTimer';
 import PaymentProcessing from '../components/payment/PaymentProcessing';
 import PaymentSuccess from '../components/payment/PaymentSuccess';
 import PaymentFailure from '../components/payment/PaymentFailure';
+import PaymentTransferInstructions from '../components/payment/PaymentTransferInstructions';
 import { formatKz } from '../utils/format';
 
 type PageState = 'idle' | 'processing' | 'success' | 'failure' | 'expired';
@@ -39,16 +40,13 @@ export default function CheckoutPayment() {
   const createPayment = useCreatePayment();
   const simulateWebhook = useSimulateWebhook();
 
-  const [selectedMethod, setSelectedMethod] = useState('card');
+  const [selectedMethod, setSelectedMethod] = useState('transfer');
   const [pageState, setPageState] = useState<PageState>('idle');
-
-  // Guarda contra duplicação (React StrictMode + race condition)
   const hasRequestedPayment = useRef(false);
 
-  const currentPayment =
-    payments?.find((p) => p.status === 'PENDING') || payments?.[0];
+  const currentPayment = payments?.find((p) => p.status === 'PENDING') || payments?.[0];
 
-  // Criar pagamento automaticamente APENAS UMA VEZ
+  // Criar pagamento automaticamente apenas uma vez (exceto para transferência)
   useEffect(() => {
     if (
       order &&
@@ -56,14 +54,15 @@ export default function CheckoutPayment() {
       (!payments || payments.length === 0) &&
       order.payment_status !== 'PAID' &&
       !hasRequestedPayment.current &&
-      !createPayment.isPending
+      !createPayment.isPending &&
+      selectedMethod !== 'transfer'
     ) {
       hasRequestedPayment.current = true;
       createPayment.mutate(id);
     }
-  }, [order, payments, loadingPayments, id, createPayment]);
+  }, [order, payments, loadingPayments, id, createPayment, selectedMethod]);
 
-  // Sincronizar estado da página com estado do pagamento
+  // Sincronizar estado
   useEffect(() => {
     if (currentPayment) {
       if (currentPayment.status === 'PAID') setPageState('success');
@@ -72,14 +71,11 @@ export default function CheckoutPayment() {
     }
   }, [currentPayment]);
 
-  const handleExpire = useCallback(() => {
-    setPageState('expired');
-  }, []);
+  const handleExpire = useCallback(() => setPageState('expired'), []);
 
   const handlePay = async () => {
     if (!currentPayment) return;
     setPageState('processing');
-
     setTimeout(async () => {
       try {
         await simulateWebhook.mutateAsync({
@@ -96,7 +92,6 @@ export default function CheckoutPayment() {
   const handleRetry = async () => {
     if (!currentPayment) return;
     setPageState('processing');
-
     setTimeout(async () => {
       try {
         await simulateWebhook.mutateAsync({
@@ -110,21 +105,10 @@ export default function CheckoutPayment() {
     }, 1500);
   };
 
-  const handleSimulateFailure = async () => {
-    if (!currentPayment) return;
-    setPageState('processing');
-
-    setTimeout(async () => {
-      try {
-        await simulateWebhook.mutateAsync({
-          providerRef: currentPayment.providerRef,
-          status: 'FAILED',
-        });
-        setPageState('failure');
-      } catch {
-        setPageState('failure');
-      }
-    }, 1200);
+  const handleTransferSubmit = () => {
+    // Criar pagamento pendente via transferência
+    hasRequestedPayment.current = true;
+    createPayment.mutate(id);
   };
 
   if (loadingOrder || loadingPayments) return <Spinner />;
@@ -188,6 +172,9 @@ export default function CheckoutPayment() {
 
   const itemsCount = order.order_items?.length || 0;
   const total = Number(order.total);
+  const isTransfer = selectedMethod === 'transfer';
+  const transferSubmitted = currentPayment?.metadata?.method === 'transfer' ||
+    (currentPayment?.provider === 'manual' && isTransfer);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -208,7 +195,7 @@ export default function CheckoutPayment() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          {currentPayment?.status === 'PENDING' && (
+          {currentPayment?.status === 'PENDING' && !isTransfer && (
             <PaymentTimer expiresInMinutes={15} onExpire={handleExpire} />
           )}
 
@@ -223,30 +210,17 @@ export default function CheckoutPayment() {
             />
           </div>
 
-          {currentPayment && (
-            <div className="bg-white border border-samgat-gray-lighter rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-samgat-black">Detalhes</h2>
-                <Badge variant={paymentVariant[currentPayment.status] || 'default'}>
-                  {paymentLabels[currentPayment.status] || currentPayment.status}
-                </Badge>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-samgat-gray-light">Referência</span>
-                  <span className="text-samgat-black font-mono text-xs">
-                    {currentPayment.providerRef}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-samgat-gray-light">Método</span>
-                  <span className="text-samgat-black capitalize">{currentPayment.provider}</span>
-                </div>
-              </div>
-            </div>
+          {/* Instruções de transferência */}
+          {isTransfer && currentPayment?.status !== 'PAID' && (
+            <PaymentTransferInstructions
+              orderId={order.id}
+              total={total}
+              formatKz={formatKz}
+            />
           )}
 
-          {currentPayment?.status === 'PENDING' && (
+          {/* Método cartão/multicaixa — simulação */}
+          {!isTransfer && currentPayment?.status === 'PENDING' && (
             <div className="bg-samgat-off-white border border-samgat-gray-lighter rounded-lg p-4">
               <p className="text-xs text-samgat-gray-light mb-3">
                 💡 <strong>Modo teste:</strong> escolhe o que queres simular
@@ -255,20 +229,36 @@ export default function CheckoutPayment() {
                 <Button onClick={handlePay} isLoading={simulateWebhook.isPending} className="flex-1">
                   Pagar Agora
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleSimulateFailure}
-                  disabled={simulateWebhook.isPending}
-                >
-                  Simular Falha
-                </Button>
               </div>
+            </div>
+          )}
+
+          {/* Botão confirmar transferência */}
+          {isTransfer && !transferSubmitted && (
+            <Button
+              onClick={handleTransferSubmit}
+              size="lg"
+              className="w-full"
+              isLoading={createPayment.isPending}
+            >
+              Já enviei o comprovativo
+            </Button>
+          )}
+
+          {isTransfer && transferSubmitted && currentPayment?.status === 'PENDING' && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+              <p className="text-sm text-yellow-800">
+                <strong>⏳ Aguarda confirmação</strong>
+              </p>
+              <p className="text-xs text-yellow-700 mt-1">
+                Vamos confirmar o teu pagamento assim que recebermos o comprovativo.
+              </p>
             </div>
           )}
         </div>
 
         <div className="lg:col-span-1">
-          <div className="bg-white border border-samgat-gray-lighter rounded-lg p-6 sticky top-24">
+          <div className="bg-white border border-samgat-gray-lighter rounded-lg p-6 lg:sticky lg:top-24">
             <h2 className="text-lg font-semibold text-samgat-black mb-4">
               Resumo do Pedido
             </h2>
@@ -292,17 +282,9 @@ export default function CheckoutPayment() {
               </div>
             </div>
 
-            {currentPayment?.status === 'PENDING' && (
-              <Button onClick={handlePay} size="lg" className="w-full" isLoading={simulateWebhook.isPending}>
-                Pagar {formatKz(total)}
-              </Button>
-            )}
-
             {currentPayment?.status === 'PAID' && (
               <Link to={`/pedidos/${id}`}>
-                <Button size="lg" className="w-full">
-                  Ver Pedido
-                </Button>
+                <Button size="lg" className="w-full">Ver Pedido</Button>
               </Link>
             )}
 
@@ -316,7 +298,7 @@ export default function CheckoutPayment() {
               <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
-              <span>Pagamento encriptado e seguro</span>
+              <span>Pagamento seguro</span>
             </div>
           </div>
         </div>

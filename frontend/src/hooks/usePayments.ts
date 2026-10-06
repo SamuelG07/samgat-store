@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { paymentApi } from '../services/paymentApi';
+import { adminApi } from '../services/adminApi';
 
 export function usePayment(paymentId: string | undefined) {
   return useQuery({
@@ -45,6 +46,29 @@ export function useSimulateWebhook() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Erro ao simular webhook');
+    },
+  });
+}
+
+// ===== ADMIN =====
+export function usePendingPayments() {
+  return useQuery({
+    queryKey: ['admin', 'payments', 'pending'],
+    queryFn: () => adminApi.getPendingPayments(),
+  });
+}
+
+export function useConfirmPayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (paymentId: number) => adminApi.confirmPayment(paymentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'payments'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+      toast.success('Pagamento confirmado');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Erro ao confirmar');
     },
   });
 }

@@ -56,12 +56,37 @@ export class PaymentRepository {
     });
   }
 
+  async findPendingAll() {
+    return prisma.payments.findMany({
+      where: { status: 'PENDING' },
+      orderBy: { created_at: 'desc' },
+      include: {
+        orders: {
+          include: {
+            users: { select: { id: true, name: true, email: true } },
+          },
+        },
+      },
+    });
+  }
+
   async updateStatus(id: number, status: PaymentStatus, transactionId?: string) {
     return prisma.payments.update({
       where: { id },
       data: {
         status,
         ...(transactionId ? { transaction_id: transactionId } : {}),
+        updated_at: new Date(),
+      },
+    });
+  }
+
+  async updateProof(id: number, proofUrl: string) {
+    return prisma.payments.update({
+      where: { id },
+      data: {
+        proof_url: proofUrl,
+        proof_uploaded_at: new Date(),
         updated_at: new Date(),
       },
     });

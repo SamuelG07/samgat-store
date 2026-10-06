@@ -41,7 +41,7 @@ export const adminApi = {
     return response.data.data;
   },
 
-    async createProduct(data: {
+  async createProduct(data: {
     name: string;
     description?: string;
     price: number;
@@ -128,6 +128,17 @@ export const adminApi = {
     return response.data.data;
   },
 
+  // ===== PAYMENTS =====
+  async getPendingPayments(): Promise<any[]> {
+    const response = await api.get('/payments/pending');
+    return response.data.data;
+  },
+
+  async confirmPayment(paymentId: number): Promise<any> {
+    const response = await api.post(`/payments/${paymentId}/confirm`);
+    return response.data.data;
+  },
+
   // ===== USERS =====
   async getUsers(params: {
     page?: number;
@@ -146,7 +157,7 @@ export const adminApi = {
   },
 };
 
-// ===== CATEGORIES (para AdminCategories) =====
+// ===== CATEGORIES =====
 export const categoryApi = {
   async list(): Promise<{ id: number; name: string; slug: string; description: string | null; created_at: string }[]> {
     const response = await api.get('/categories');

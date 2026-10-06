@@ -72,6 +72,27 @@ model orders {
   reviews        product_reviews[]
 }
 
+model payments {
+  id              Int            @id @default(autoincrement())
+  order_id        Int
+  provider        String         @db.VarChar(50)
+  provider_ref    String         @unique @db.VarChar(255)
+  amount          Decimal        @db.Decimal(12, 2)
+  currency        String         @default("AOA") @db.VarChar(3)
+  status          payment_status @default(PENDING)
+  metadata        Json?
+  idempotency_key String?        @unique @db.VarChar(255)
+  proof_url         String?        @db.VarChar(500)
+  proof_uploaded_at DateTime?      @db.Timestamp(6)
+  created_at      DateTime       @default(now()) @db.Timestamp(6)
+  updated_at      DateTime       @default(now()) @db.Timestamp(6)
+  transaction_id  String?        @unique @db.VarChar(100)
+  orders          orders         @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_order")
+
+  @@index([order_id])
+  @@index([status])
+}
+
 model product_reviews {
   id         Int      @id @default(autoincrement())
   product_id Int
@@ -157,25 +178,4 @@ enum stock_movement_type {
 enum user_role {
   CUSTOMER
   ADMIN
-}
-
-model payments {
-  id                Int            @id @default(autoincrement())
-  order_id          Int
-  provider          String         @db.VarChar(50)
-  provider_ref      String         @unique @db.VarChar(255)
-  transaction_id    String?        @unique @db.VarChar(100)
-  amount            Decimal        @db.Decimal(12, 2)
-  currency          String         @default("AOA") @db.VarChar(3)
-  status            payment_status @default(PENDING)
-  metadata          Json?
-  idempotency_key   String?        @unique @db.VarChar(255)
-  proof_url         String?        @db.VarChar(500)
-  proof_uploaded_at DateTime?      @db.Timestamp(6)
-  created_at        DateTime       @default(now()) @db.Timestamp(6)
-  updated_at        DateTime       @default(now()) @db.Timestamp(6)
-  orders            orders         @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_order")
-
-  @@index([order_id])
-  @@index([status])
 }

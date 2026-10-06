@@ -1,6 +1,7 @@
 import { manualPaymentProvider } from './payments/ManualPaymentProvider';
 import { paymentRepository } from '../repositories/paymentRepository';
 import { orderRepository } from '../repositories/orderRepository';
+import { uploadToCloudinary } from '../config/cloudinary';
 import { AppError } from '../utils/errorHandler';
 import { logger } from '../utils/logger';
 
@@ -21,20 +22,16 @@ export class PaymentService {
 
     const idempotencyKey = `order-${orderId}-pending`;
 
-    // Reutilizar PENDING existente
     const existingPending = await paymentRepository.findPendingByOrderId(orderId);
     if (existingPending) {
-      logger.info(`[Payment] Reutilizando: ${existingPending.id}`);
       return this.serialize(existingPending);
     }
 
-    // Idempotency hit
     const existingByKey = await paymentRepository.findByIdempotencyKey(idempotencyKey);
     if (existingByKey) {
       return this.serialize(existingByKey);
     }
 
-    // Criar pagamento via provider
     const amount = Number(order.total);
     const providerResult = await manualPaymentProvider.createPayment({
       orderId,
@@ -43,7 +40,6 @@ export class PaymentService {
       metadata: { userId, method, ...paymentData },
     });
 
-    // Gerar transaction_id se PAID
     const transactionId = providerResult.status === 'PAID'
       ? manualPaymentProvider.generateTransactionId()
       : undefined;
@@ -61,7 +57,6 @@ export class PaymentService {
         idempotencyKey,
       });
 
-      // Se já PAID, sincronizar order
       if (providerResult.status === 'PAID') {
         await paymentRepository.updatePaymentStatus(orderId, 'PAID');
       } else if (providerResult.status === 'FAILED') {
@@ -105,6 +100,52 @@ export class PaymentService {
 
     const payments = await paymentRepository.findByOrderId(orderId);
     return payments.map((p) => this.serialize(p));
+  }
+
+  async getPendingPayments() {
+    return paymentRepository.findPendingAll();
+  }
+
+  async confirmPaymentByAdmin(paymentId: number) {
+    const payment = await paymentRepository.findById(paymentId);
+    if (!payment) {
+      throw new AppError({ message: 'Pagamento não encontrado', statusCode: 404, code: 'PAYMENT_NOT_FOUND' });
+    }
+
+    if (payment.status === 'PAID') {
+      throw new AppError({ message: 'Pagamento já confirmado', statusCode: 409, code: 'PAYMENT_ALREADY_PAID' });
+    }
+
+    const transactionId = manualPaymentProvider.generateTransactionId();
+    await paymentRepository.updateStatus(payment.id, 'PAID', transactionId);
+    await paymentRepository.updatePaymentStatus(payment.order_id, 'PAID');
+
+    logger.info(`[Payment] Admin confirmou pagamento ${payment.id}`);
+
+    return this.serialize({ ...payment, status: 'PAID', transaction_id: transactionId });
+  }
+
+  async uploadProof(userId: number, paymentId: number, fileBuffer: Buffer) {
+    const payment = await paymentRepository.findById(paymentId);
+    if (!payment) {
+      throw new AppError({ message: 'Pagamento não encontrado', statusCode: 404, code: 'PAYMENT_NOT_FOUND' });
+    }
+
+    const order = await orderRepository.findById(payment.order_id);
+    if (!order || order.user_id !== userId) {
+      throw new AppError({ message: 'Acesso negado', statusCode: 403, code: 'FORBIDDEN' });
+    }
+
+    if (payment.status === 'PAID') {
+      throw new AppError({ message: 'Pagamento já confirmado', statusCode: 409, code: 'PAYMENT_ALREADY_PAID' });
+    }
+
+    const { secure_url } = await uploadToCloudinary(fileBuffer, 'samgat/proofs');
+    const updated = await paymentRepository.updateProof(payment.id, secure_url);
+
+    logger.info(`[Payment] Comprovativo anexado ao pagamento ${payment.id}`);
+
+    return this.serialize(updated);
   }
 
   async processWebhook(payload: any, signature: string): Promise<void> {
@@ -152,6 +193,7 @@ export class PaymentService {
       provider: payment.provider,
       providerRef: payment.provider_ref,
       transactionId: payment.transaction_id,
+      proofUrl: payment.proof_url || null,
       metadata: payment.metadata,
       createdAt: payment.created_at,
     };

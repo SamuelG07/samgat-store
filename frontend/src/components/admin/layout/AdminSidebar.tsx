@@ -12,6 +12,7 @@ const navItems = [
   { to: '/admin/categories', label: 'Categorias' },
   { to: '/admin/inventory', label: 'Stock' },
   { to: '/admin/orders', label: 'Pedidos' },
+  { to: '/admin/payments', label: 'Pagamentos' },
   { to: '/admin/customers', label: 'Clientes' },
   { to: '/admin/admins', label: 'Administradores' },
   { to: '/admin/stock-movements', label: 'Movimentações' },
@@ -33,7 +34,6 @@ export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
 
   return (
     <div className="flex flex-col h-full bg-samgat-black text-white">
-      {/* Logo — clicável para /admin */}
       <Link
         to="/admin"
         onClick={onNavigate}
@@ -43,7 +43,6 @@ export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
         <p className="text-xs text-samgat-gray-lighter mt-1">Painel Administrativo</p>
       </Link>
 
-      {/* Navegação */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => (
           <NavLink
@@ -63,7 +62,6 @@ export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
           </NavLink>
         ))}
 
-        {/* Separador */}
         <div className="pt-3 mt-3 border-t border-samgat-gray">
           <Link
             to="/"
@@ -78,7 +76,6 @@ export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
         </div>
       </nav>
 
-      {/* Utilizador + Logout */}
       <div className="p-4 border-t border-samgat-gray flex-shrink-0">
         <div className="mb-3">
           <p className="text-sm font-medium text-white truncate">{user?.name}</p>
