@@ -1,0 +1,16 @@
+
+    'Content-Type': 'application/json',
+  },
+});
+
+let isRedirecting = fal
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Sessão expirada ou não autenticado
+    if (error.respe?.status === 401) {
+      const url = error.config?.url || '';
+
+      // Não redirecionar se já está em login/register ou se é /auth/me
+      const skipRedirect =
+        url.includes(

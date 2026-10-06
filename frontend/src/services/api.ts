@@ -1,14 +1,8 @@
-import axios, {
-  AxiosError,
-  AxiosInstance,
-  InternalAxiosRequestConfig,
-} from 'axios';
+import axios from 'axios';
 
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-const api: AxiosInstance = axios.create({
+export const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
   headers: {
@@ -16,45 +10,34 @@ const api: AxiosInstance = axios.create({
   },
 });
 
-api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    return config;
-  },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  }
-);
-
 let isRedirecting = false;
 
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
-    if (error.response?.status === 401 && !isRedirecting) {
-      const protectedPaths = [
-        '/admin',
-        '/carrinho',
-        '/pedidos',
-        '/perfil',
-        '/checkout',
-      ];
+  (error) => {
+    if (error.response?.status === 401) {
+      const url = error.config?.url || '';
 
-      const currentPath = window.location.pathname;
+      const skipRedirect =
+        url.includes('/auth/me') ||
+        url.includes('/auth/login') ||
+        url.includes('/auth/register');
 
-      const isProtected = protectedPaths.some((path) =>
-        currentPath.startsWith(path)
-      );
-
-      if (isProtected && currentPath !== '/login') {
+      if (!skipRedirect && !isRedirecting) {
         isRedirecting = true;
-        window.location.href = '/login';
+        const protectedPaths = ['/carrinho', '/pedidos', '/admin'];
+        const isProtected = protectedPaths.some((p) =>
+          window.location.pathname.startsWith(p)
+        );
 
+        if (isProtected) {
+          window.location.href = '/login';
+        }
         setTimeout(() => {
           isRedirecting = false;
         }, 1000);
       }
     }
-
     return Promise.reject(error);
   }
 );

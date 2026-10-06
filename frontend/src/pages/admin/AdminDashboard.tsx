@@ -1,8 +1,10 @@
 import { useDashboard } from '../../hooks/admin/useDashboard';
-import StatCard from '../../components/admin/StatCard';
+import StatsCard from '../../components/admin/dashboard/StatsCard';
+import RecentOrders from '../../components/admin/dashboard/RecentOrders';
+import LowStockProducts from '../../components/admin/dashboard/LowStockProducts';
 import LoadingState from '../../components/admin/LoadingState';
 import ErrorState from '../../components/admin/ErrorState';
-import EmptyState from '../../components/admin/EmptyState';
+import { formatKz } from '../../utils/format';
 
 export default function AdminDashboard() {
   const { data, isLoading, isError, refetch } = useDashboard();
@@ -12,140 +14,68 @@ export default function AdminDashboard() {
 
   const { metrics, recentOrders, lowStockProducts } = data;
 
-  const formatKz = (value: number) =>
-    new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(value);
-
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString('pt-AO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-
   return (
-    <div className="space-y-8">
-      {/* Título */}
+    <div className="space-y-6">
+      {/* Cabeçalho */}
       <div>
-        <h1 className="text-2xl font-bold text-samgat-black">Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-samgat-black">Dashboard</h1>
         <p className="text-samgat-gray-light text-sm mt-1">
           Visão geral da sua loja
         </p>
       </div>
 
-      {/* Cards de Métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Receita Total"
-          value={formatKz(metrics.revenue.total)}
-          subtitle="Pedidos não cancelados"
-          highlight
-        />
-        <StatCard
-          title="Produtos"
+      {/* Cards de métricas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard
+          title="Total de Produtos"
           value={metrics.products.total}
           subtitle={`${metrics.products.active} ativos · ${metrics.products.inactive} inativos`}
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          }
         />
-        <StatCard
+        <StatsCard
           title="Pedidos"
           value={metrics.orders.total}
           subtitle={`${metrics.orders.pending} pendentes`}
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          }
         />
-        <StatCard
-          title="Stock Baixo"
-          value={metrics.inventory.lowStock}
-          subtitle={`Abaixo de ${metrics.inventory.threshold} unidades`}
+        <StatsCard
+          title="Clientes"
+          value={metrics.users.total}
+          subtitle="Utilizadores registados"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          }
+        />
+        <StatsCard
+          title="Receita"
+          value={formatKz(metrics.revenue.total)}
+          subtitle="Pedidos não cancelados"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
         />
       </div>
 
-      {/* Segunda linha de métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard title="Usuários" value={metrics.users.total} />
-        <StatCard title="Categorias" value={metrics.categories.total} />
-        <StatCard
-          title="Entregues"
-          value={metrics.orders.delivered}
-          subtitle={`${metrics.orders.cancelled} cancelados`}
-        />
-      </div>
+      {/* Pedidos recentes */}
+      <RecentOrders orders={recentOrders} />
 
-      {/* Duas colunas: Pedidos Recentes + Stock Baixo */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Pedidos Recentes */}
-        <div className="bg-white rounded-lg border border-samgat-gray-lighter p-6">
-          <h3 className="text-lg font-semibold text-samgat-black mb-4">
-            Pedidos Recentes
-          </h3>
-
-          {recentOrders.length === 0 ? (
-            <EmptyState title="Sem pedidos" message="Nenhum pedido registrado ainda." />
-          ) : (
-            <div className="space-y-3">
-              {recentOrders.map((order: any) => (
-                <div
-                  key={order.id}
-                  className="flex items-center justify-between border-b border-samgat-gray-lighter pb-3 last:border-0"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-samgat-black">
-                      #{order.id} — {order.users?.name || 'Sem nome'}
-                    </p>
-                    <p className="text-xs text-samgat-gray-light mt-1">
-                      {formatDate(order.created_at)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-samgat-black">
-                      {formatKz(Number(order.total))}
-                    </p>
-                    <p className="text-xs text-samgat-gray-light mt-1">
-                      {order.status}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Stock Baixo */}
-        <div className="bg-white rounded-lg border border-samgat-gray-lighter p-6">
-          <h3 className="text-lg font-semibold text-samgat-black mb-4">
-            Produtos com Stock Baixo
-          </h3>
-
-          {lowStockProducts.length === 0 ? (
-            <EmptyState
-              title="Tudo em ordem"
-              message="Nenhum produto com stock baixo."
-            />
-          ) : (
-            <div className="space-y-3">
-              {lowStockProducts.map((item: any) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between border-b border-samgat-gray-lighter pb-3 last:border-0"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-samgat-black">
-                      {item.products?.name}
-                    </p>
-                    <p className="text-xs text-samgat-gray-light mt-1">
-                      {item.products?.is_active ? 'Ativo' : 'Inativo'}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-red-600">
-                      {item.quantity} un.
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Stock baixo */}
+      <LowStockProducts
+        products={lowStockProducts}
+        threshold={metrics.inventory.threshold}
+      />
     </div>
   );
 }
