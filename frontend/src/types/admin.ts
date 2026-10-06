@@ -51,7 +51,7 @@ export interface AdminOrder {
 export interface DashboardMetrics {
   products: { total: number; active: number; inactive: number };
   categories: { total: number };
-  users: { total: number };
+  users: { total: number; newLast30: number };
   orders: {
     total: number;
     pending: number;
@@ -62,7 +62,19 @@ export interface DashboardMetrics {
     cancelled: number;
   };
   inventory: { lowStock: number; threshold: number };
-  revenue: { total: number };
+  revenue: {
+    total: number;
+    last30Days: number;
+    previous30Days: number;
+    change: number;
+  };
+  ordersStats: {
+    last30Days: number;
+    previous30Days: number;
+    change: number;
+  };
+  productsSold: { total: number };
+  averageTicket: number;
 }
 
 export interface DashboardData {
