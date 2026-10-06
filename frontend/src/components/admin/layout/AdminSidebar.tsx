@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -33,11 +33,15 @@ export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
 
   return (
     <div className="flex flex-col h-full bg-samgat-black text-white">
-      {/* Logo */}
-      <div className="p-6 border-b border-samgat-gray flex-shrink-0">
+      {/* Logo — clicável para /admin */}
+      <Link
+        to="/admin"
+        onClick={onNavigate}
+        className="p-6 border-b border-samgat-gray flex-shrink-0 block hover:bg-samgat-dark transition-colors"
+      >
         <h1 className="text-xl font-bold">Samgat Store</h1>
         <p className="text-xs text-samgat-gray-lighter mt-1">Painel Administrativo</p>
-      </div>
+      </Link>
 
       {/* Navegação */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -58,6 +62,20 @@ export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
             {item.label}
           </NavLink>
         ))}
+
+        {/* Separador */}
+        <div className="pt-3 mt-3 border-t border-samgat-gray">
+          <Link
+            to="/"
+            onClick={onNavigate}
+            className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-samgat-gray-lighter hover:bg-samgat-dark hover:text-white transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Ir para a Loja
+          </Link>
+        </div>
       </nav>
 
       {/* Utilizador + Logout */}
