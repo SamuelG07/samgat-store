@@ -3,6 +3,7 @@ import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory 
 import LoadingState from '../../components/admin/LoadingState';
 import ErrorState from '../../components/admin/ErrorState';
 import EmptyState from '../../components/admin/EmptyState';
+import Button from '../../components/ui/Button';
 
 interface CategoryForm {
   id?: number;
@@ -32,7 +33,6 @@ export default function AdminCategories() {
 
   const handleSubmit = () => {
     if (!modal || !modal.name) return;
-
     const payload = {
       name: modal.name,
       description: modal.description || undefined,
@@ -40,10 +40,7 @@ export default function AdminCategories() {
     };
 
     if (modal.id) {
-      updateCategory.mutate(
-        { id: modal.id, data: payload },
-        { onSuccess: closeModal }
-      );
+      updateCategory.mutate({ id: modal.id, data: payload }, { onSuccess: closeModal });
     } else {
       createCategory.mutate(payload, { onSuccess: closeModal });
     }
@@ -63,60 +60,63 @@ export default function AdminCategories() {
 
   return (
     <div className="space-y-6">
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-samgat-black">Categorias</h1>
-          <p className="text-samgat-gray-light text-sm mt-1">{categories.length} categorias</p>
+          <p className="text-samgat-gray-light text-sm mt-1">
+            {categories.length} categorias
+          </p>
         </div>
-        <button
-          onClick={openCreate}
-          className="bg-samgat-black text-white px-4 py-2 rounded-lg text-sm hover:bg-samgat-dark transition-colors"
-        >
-          + Nova Categoria
-        </button>
+        <Button onClick={openCreate}>+ Nova Categoria</Button>
       </div>
 
-      {/* Tabela */}
       {categories.length === 0 ? (
-        <EmptyState title="Sem categorias" message="Crie a primeira categoria." />
+        <EmptyState
+          title="Sem categorias"
+          message="Crie a primeira categoria."
+          action={<Button onClick={openCreate}>+ Nova Categoria</Button>}
+        />
       ) : (
         <div className="bg-white rounded-lg border border-samgat-gray-lighter overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-samgat-off-white border-b border-samgat-gray-lighter">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium text-samgat-gray">ID</th>
-                <th className="text-left px-4 py-3 font-medium text-samgat-gray">Nome</th>
-                <th className="text-left px-4 py-3 font-medium text-samgat-gray">Slug</th>
-                <th className="text-left px-4 py-3 font-medium text-samgat-gray">Descrição</th>
-                <th className="text-right px-4 py-3 font-medium text-samgat-gray">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map((cat) => (
-                <tr key={cat.id} className="border-b border-samgat-gray-lighter last:border-0">
-                  <td className="px-4 py-3 text-samgat-gray-light">#{cat.id}</td>
-                  <td className="px-4 py-3 font-medium text-samgat-black">{cat.name}</td>
-                  <td className="px-4 py-3 text-samgat-gray-light text-xs">{cat.slug}</td>
-                  <td className="px-4 py-3 text-samgat-gray text-xs">{cat.description || '-'}</td>
-                  <td className="px-4 py-3 text-right space-x-3">
-                    <button
-                      onClick={() => openEdit(cat)}
-                      className="text-xs text-samgat-black hover:underline"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => setConfirmDelete({ id: cat.id, name: cat.name })}
-                      className="text-xs text-red-600 hover:underline"
-                    >
-                      Remover
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[600px]">
+              <thead className="bg-samgat-off-white border-b border-samgat-gray-lighter">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium text-samgat-gray">ID</th>
+                  <th className="text-left px-4 py-3 font-medium text-samgat-gray">Nome</th>
+                  <th className="text-left px-4 py-3 font-medium text-samgat-gray">Slug</th>
+                  <th className="text-left px-4 py-3 font-medium text-samgat-gray">Descrição</th>
+                  <th className="text-right px-4 py-3 font-medium text-samgat-gray">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {categories.map((cat) => (
+                  <tr key={cat.id} className="border-b border-samgat-gray-lighter last:border-0">
+                    <td className="px-4 py-3 text-samgat-gray-light">#{cat.id}</td>
+                    <td className="px-4 py-3 font-medium text-samgat-black">{cat.name}</td>
+                    <td className="px-4 py-3 text-samgat-gray-light text-xs">{cat.slug}</td>
+                    <td className="px-4 py-3 text-samgat-gray text-xs max-w-[200px] truncate">
+                      {cat.description || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-right space-x-3 whitespace-nowrap">
+                      <button
+                        onClick={() => openEdit(cat)}
+                        className="text-xs text-samgat-black hover:underline"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete({ id: cat.id, name: cat.name })}
+                        className="text-xs text-red-600 hover:underline"
+                      >
+                        Remover
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -130,9 +130,7 @@ export default function AdminCategories() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-samgat-black mb-1">
-                  Nome *
-                </label>
+                <label className="block text-sm font-medium text-samgat-black mb-1">Nome *</label>
                 <input
                   type="text"
                   value={modal.name}
@@ -156,9 +154,7 @@ export default function AdminCategories() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-samgat-black mb-1">
-                  Descrição
-                </label>
+                <label className="block text-sm font-medium text-samgat-black mb-1">Descrição</label>
                 <textarea
                   value={modal.description}
                   onChange={(e) => setModal({ ...modal, description: e.target.value })}
@@ -169,19 +165,17 @@ export default function AdminCategories() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button
-                  onClick={closeModal}
-                  className="flex-1 px-4 py-2 border border-samgat-gray-lighter rounded-lg text-sm hover:bg-samgat-off-white"
-                >
+                <Button variant="outline" className="flex-1" onClick={closeModal}>
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button
+                  className="flex-1"
                   onClick={handleSubmit}
                   disabled={!modal.name || isPending}
-                  className="flex-1 bg-samgat-black text-white px-4 py-2 rounded-lg text-sm hover:bg-samgat-dark disabled:opacity-50"
+                  isLoading={isPending}
                 >
-                  {isPending ? 'A guardar...' : 'Guardar'}
-                </button>
+                  Guardar
+                </Button>
               </div>
             </div>
           </div>
@@ -192,27 +186,23 @@ export default function AdminCategories() {
       {confirmDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-semibold text-samgat-black mb-2">
-              Remover Categoria
-            </h3>
+            <h3 className="text-lg font-semibold text-samgat-black mb-2">Remover Categoria</h3>
             <p className="text-sm text-samgat-gray mb-6">
               Tem a certeza que quer remover <strong>{confirmDelete.name}</strong>? Esta ação não pode ser desfeita.
             </p>
 
             <div className="flex gap-2">
-              <button
-                onClick={() => setConfirmDelete(null)}
-                className="flex-1 px-4 py-2 border border-samgat-gray-lighter rounded-lg text-sm hover:bg-samgat-off-white"
-              >
+              <Button variant="outline" className="flex-1" onClick={() => setConfirmDelete(null)}>
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="danger"
+                className="flex-1"
                 onClick={handleDelete}
-                disabled={deleteCategory.isPending}
-                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 disabled:opacity-50"
+                isLoading={deleteCategory.isPending}
               >
-                {deleteCategory.isPending ? 'A remover...' : 'Remover'}
-              </button>
+                Remover
+              </Button>
             </div>
           </div>
         </div>
