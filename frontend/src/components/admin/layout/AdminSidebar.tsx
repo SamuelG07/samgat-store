@@ -12,7 +12,8 @@ const navItems = [
   { to: '/admin/categories', label: 'Categorias' },
   { to: '/admin/inventory', label: 'Stock' },
   { to: '/admin/orders', label: 'Pedidos' },
-  { to: '/admin/users', label: 'Usuários' },
+  { to: '/admin/customers', label: 'Clientes' },
+  { to: '/admin/admins', label: 'Administradores' },
   { to: '/admin/stock-movements', label: 'Movimentações' },
 ];
 

@@ -17,6 +17,10 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminCustomers from './pages/admin/AdminCustomers';
+import AdminAdmins from './pages/admin/AdminAdmins';
+import CustomerDetails from './pages/admin/CustomerDetails';
+import AdminDetails from './pages/admin/AdminDetails';
 import AdminInventory from './pages/admin/AdminInventory';
 import AdminStockMovements from './pages/admin/AdminStockMovements';
 import AdminCategories from './pages/admin/AdminCategories';
@@ -61,6 +65,10 @@ function App() {
         <Route path="/admin/users" element={adminRoute(<AdminUsers />)} />
         <Route path="/admin/inventory" element={adminRoute(<AdminInventory />)} />
         <Route path="/admin/stock-movements" element={adminRoute(<AdminStockMovements />)} />
+	<Route path="/admin/customers" element={adminRoute(<AdminCustomers />)} />
+	<Route path="/admin/customers/:id" element={adminRoute(<CustomerDetails />)} />
+	<Route path="/admin/admins" element={adminRoute(<AdminAdmins />)} />
+	<Route path="/admin/admins/:id" element={adminRoute(<AdminDetails />)} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

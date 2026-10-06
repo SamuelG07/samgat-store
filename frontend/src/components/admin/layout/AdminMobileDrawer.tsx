@@ -7,18 +7,22 @@ interface AdminMobileDrawerProps {
 }
 
 export default function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
-  // Fechar com tecla ESC
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
+
     if (isOpen) {
       document.addEventListener('keydown', handleEsc);
       document.body.style.overflow = 'hidden';
     }
+
+    // ✅ Cleanup SEMPRE corre, mesmo se o componente desmontar
     return () => {
       document.removeEventListener('keydown', handleEsc);
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.documentElement.style.overflow = '';
     };
   }, [isOpen, onClose]);
 
@@ -35,7 +39,7 @@ export default function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawer
 
       {/* Drawer */}
       <aside
-        className={`lg:hidden fixed top-0 left-0 h-full w-72 max-w-[85vw] z-50 transform transition-transform duration-200 ${
+        className={`lg:hidden fixed top-0 left-0 h-screen w-72 max-w-[85vw] z-50 transform transition-transform duration-200 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="dialog"

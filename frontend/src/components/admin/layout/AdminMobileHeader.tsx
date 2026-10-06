@@ -9,7 +9,7 @@ export default function AdminMobileHeader({ onOpenMenu }: AdminMobileHeaderProps
 
   return (
     <header className="lg:hidden sticky top-0 z-30 bg-white border-b border-samgat-gray-lighter">
-      <div className="flex items-center justify-between h-16 px-4">
+      <div className="flex items-center justify-between h-14 sm:h-16 px-3 sm:px-4">
         {/* Hamburger */}
         <button
           onClick={onOpenMenu}
@@ -23,7 +23,7 @@ export default function AdminMobileHeader({ onOpenMenu }: AdminMobileHeaderProps
 
         {/* Título */}
         <h1 className="text-base font-bold text-samgat-black truncate">
-          Samgat Store
+          Painel Administrativo
         </h1>
 
         {/* Avatar */}

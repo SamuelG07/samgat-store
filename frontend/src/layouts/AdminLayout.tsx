@@ -17,16 +17,32 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     setIsDrawerOpen(false);
   }, [location.pathname]);
 
+  // ✅ Garantir que o scroll do body NUNCA fica bloqueado
+  useEffect(() => {
+    // Limpar qualquer overflow forçado ao montar/desmontar
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.height = '';
+    document.documentElement.style.overflow = '';
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.height = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-samgat-off-white">
-      {/* Sidebar desktop */}
-      <aside className="hidden lg:block fixed top-0 left-0 h-screen w-64 xl:w-72 z-20">
+      {/* Sidebar desktop — fixa, apenas em desktop */}
+      <aside className="hidden lg:flex fixed top-0 left-0 h-screen w-64 xl:w-72 z-20 flex-col">
         <AdminSidebar />
       </aside>
 
       {/* Conteúdo principal */}
       <div className="lg:pl-64 xl:pl-72">
-        {/* Header mobile */}
+        {/* Header mobile — sticky no topo */}
         <AdminMobileHeader onOpenMenu={() => setIsDrawerOpen(true)} />
 
         {/* Drawer mobile */}
@@ -35,9 +51,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           onClose={() => setIsDrawerOpen(false)}
         />
 
-        {/* Área de conteúdo */}
+        {/* Área de conteúdo — scroll natural do body */}
         <main className="p-4 sm:p-6 lg:p-8">
-          <div className="max-w-full overflow-x-hidden">
+          <div className="w-full max-w-full">
             {children}
           </div>
         </main>
