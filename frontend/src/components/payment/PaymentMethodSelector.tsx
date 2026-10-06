@@ -3,37 +3,20 @@ interface PaymentMethod {
   label: string;
   description: string;
   icon: string;
-  available: boolean;
 }
 
 const METHODS: PaymentMethod[] = [
   {
-    id: 'multicaixa',
-    label: 'Multicaixa Express',
-    description: 'Pagamento via app Multicaixa',
-    icon: '📱',
-    available: true,
-  },
-  {
-    id: 'card',
-    label: 'Cartão de Crédito/Débito',
-    description: 'Visa, Mastercard',
-    icon: '💳',
-    available: true,
-  },
-  {
     id: 'transfer',
     label: 'Transferência Bancária',
-    description: 'BAI, BFA, BIC, Standard Bank',
+    description: 'IBAN, KWiK ou transferência normal',
     icon: '🏦',
-    available: true,
   },
   {
-    id: 'cash',
-    label: 'Pagamento na Entrega',
-    description: 'Paga em dinheiro ao receber',
-    icon: '💵',
-    available: true,
+    id: 'multicaixa',
+    label: 'Multicaixa Express',
+    description: 'Pagamento via app Multicaixa Express',
+    icon: '📱',
   },
 ];
 
@@ -48,19 +31,17 @@ export default function PaymentMethodSelector({ value, onChange, disabled = fals
     <div className="space-y-3">
       {METHODS.map((method) => {
         const isSelected = value === method.id;
-        const isDisabled = disabled || !method.available;
-
         return (
           <button
             key={method.id}
             type="button"
-            onClick={() => !isDisabled && onChange(method.id)}
-            disabled={isDisabled}
+            onClick={() => !disabled && onChange(method.id)}
+            disabled={disabled}
             className={`w-full flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-left ${
               isSelected
                 ? 'border-samgat-black bg-samgat-off-white'
                 : 'border-samgat-gray-lighter bg-white hover:border-samgat-gray'
-            } ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <span className="text-2xl flex-shrink-0">{method.icon}</span>
             <div className="flex-1 min-w-0">

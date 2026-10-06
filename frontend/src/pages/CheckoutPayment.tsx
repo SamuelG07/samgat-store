@@ -1,52 +1,34 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useOrder } from '../hooks/useOrders';
-import { useCreatePayment, usePaymentsByOrder, useSimulateWebhook } from '../hooks/usePayments';
+import { useCreatePayment, usePaymentsByOrder, useUploadProof } from '../hooks/usePayments';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import Spinner from '../components/ui/Spinner';
 import ErrorState from '../components/ui/ErrorState';
 import PaymentMethodSelector from '../components/payment/PaymentMethodSelector';
-import PaymentTimer from '../components/payment/PaymentTimer';
-import PaymentProcessing from '../components/payment/PaymentProcessing';
-import PaymentSuccess from '../components/payment/PaymentSuccess';
-import PaymentFailure from '../components/payment/PaymentFailure';
-import PaymentTransferInstructions from '../components/payment/PaymentTransferInstructions';
+import PaymentInstructions from '../components/payment/PaymentInstructions';
 import { formatKz } from '../utils/format';
-
-type PageState = 'idle' | 'processing' | 'success' | 'failure' | 'expired';
-
-const paymentLabels: Record<string, string> = {
-  PENDING: 'Pendente',
-  PAID: 'Pago',
-  FAILED: 'Falhou',
-  REFUNDED: 'Reembolsado',
-};
-
-const paymentVariant: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'dark'> = {
-  PENDING: 'warning',
-  PAID: 'success',
-  FAILED: 'danger',
-  REFUNDED: 'default',
-};
 
 export default function CheckoutPayment() {
   const { orderId } = useParams();
-  const navigate = useNavigate();
   const id = Number(orderId);
 
   const { data: order, isLoading: loadingOrder, isError, refetch } = useOrder(id);
   const { data: payments, isLoading: loadingPayments } = usePaymentsByOrder(id);
   const createPayment = useCreatePayment();
-  const simulateWebhook = useSimulateWebhook();
+  const uploadProof = useUploadProof();
 
-  const [selectedMethod, setSelectedMethod] = useState('transfer');
-  const [pageState, setPageState] = useState<PageState>('idle');
+  const [method, setMethod] = useState<'transfer' | 'multicaixa'>('transfer');
   const hasRequestedPayment = useRef(false);
 
-  const currentPayment = payments?.find((p) => p.status === 'PENDING') || payments?.[0];
+  const currentPayment =
+    payments?.find((p) => p.status === 'PENDING') || payments?.[0];
 
-  // Criar pagamento automaticamente apenas uma vez (exceto para transferência)
+  const reference = currentPayment?.metadata?.reference as string | undefined;
+
+  // Criar pagamento apenas quando necessário
   useEffect(() => {
     if (
       order &&
@@ -54,61 +36,19 @@ export default function CheckoutPayment() {
       (!payments || payments.length === 0) &&
       order.payment_status !== 'PAID' &&
       !hasRequestedPayment.current &&
-      !createPayment.isPending &&
-      selectedMethod !== 'transfer'
+      !createPayment.isPending
     ) {
       hasRequestedPayment.current = true;
-      createPayment.mutate(id);
+      createPayment.mutate({ orderId: id, method });
     }
-  }, [order, payments, loadingPayments, id, createPayment, selectedMethod]);
+  }, [order, payments, loadingPayments, id, createPayment, method]);
 
-  // Sincronizar estado
-  useEffect(() => {
-    if (currentPayment) {
-      if (currentPayment.status === 'PAID') setPageState('success');
-      else if (currentPayment.status === 'FAILED') setPageState('failure');
-      else setPageState('idle');
+  const handleFileSelect = (file: File) => {
+    if (!currentPayment) {
+      toast.error('Aguarda enquanto criamos o pagamento...');
+      return;
     }
-  }, [currentPayment]);
-
-  const handleExpire = useCallback(() => setPageState('expired'), []);
-
-  const handlePay = async () => {
-    if (!currentPayment) return;
-    setPageState('processing');
-    setTimeout(async () => {
-      try {
-        await simulateWebhook.mutateAsync({
-          providerRef: currentPayment.providerRef,
-          status: 'PAID',
-        });
-        setPageState('success');
-      } catch {
-        setPageState('failure');
-      }
-    }, 1500);
-  };
-
-  const handleRetry = async () => {
-    if (!currentPayment) return;
-    setPageState('processing');
-    setTimeout(async () => {
-      try {
-        await simulateWebhook.mutateAsync({
-          providerRef: currentPayment.providerRef,
-          status: 'PAID',
-        });
-        setPageState('success');
-      } catch {
-        setPageState('failure');
-      }
-    }, 1500);
-  };
-
-  const handleTransferSubmit = () => {
-    // Criar pagamento pendente via transferência
-    hasRequestedPayment.current = true;
-    createPayment.mutate(id);
+    uploadProof.mutate({ paymentId: Number(currentPayment.paymentId), file });
   };
 
   if (loadingOrder || loadingPayments) return <Spinner />;
@@ -121,60 +61,9 @@ export default function CheckoutPayment() {
     );
   }
 
-  if (pageState === 'processing') {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <PaymentProcessing />
-      </div>
-    );
-  }
-
-  if (pageState === 'success') {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <PaymentSuccess orderId={order.id} total={Number(order.total)} formatKz={formatKz} />
-      </div>
-    );
-  }
-
-  if (pageState === 'failure') {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <PaymentFailure onRetry={handleRetry} isLoading={simulateWebhook.isPending} />
-      </div>
-    );
-  }
-
-  if (pageState === 'expired') {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4 text-center">
-        <div>
-          <div className="w-20 h-20 rounded-full bg-yellow-50 border-2 border-yellow-200 flex items-center justify-center mx-auto mb-6">
-            <span className="text-3xl">⏱️</span>
-          </div>
-          <h2 className="text-2xl font-bold text-samgat-black mb-2">Tempo expirado</h2>
-          <p className="text-sm text-samgat-gray-light mb-8">
-            O tempo para completar o pagamento expirou.
-          </p>
-          <Button
-            onClick={() => {
-              hasRequestedPayment.current = false;
-              createPayment.mutate(id);
-            }}
-            isLoading={createPayment.isPending}
-          >
-            Tentar Novamente
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  const itemsCount = order.order_items?.length || 0;
   const total = Number(order.total);
-  const isTransfer = selectedMethod === 'transfer';
-  const transferSubmitted = currentPayment?.metadata?.method === 'transfer' ||
-    (currentPayment?.provider === 'manual' && isTransfer);
+  const itemsCount = order.order_items?.length || 0;
+  const isPaid = currentPayment?.status === 'PAID';
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -189,79 +78,66 @@ export default function CheckoutPayment() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-samgat-black">Pagamento</h1>
         <p className="text-samgat-gray-light mt-1 text-sm">
-          Escolhe o método e conclui o teu pedido em segurança
+          Escolhe o método e conclui o teu pedido
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          {currentPayment?.status === 'PENDING' && !isTransfer && (
-            <PaymentTimer expiresInMinutes={15} onExpire={handleExpire} />
+          {!isPaid && (
+            <div className="bg-white border border-samgat-gray-lighter rounded-lg p-6">
+              <h2 className="text-lg font-semibold text-samgat-black mb-4">Método de pagamento</h2>
+              <PaymentMethodSelector
+                value={method}
+                onChange={(m) => setMethod(m as 'transfer' | 'multicaixa')}
+                disabled={!!currentPayment?.proofUrl}
+              />
+            </div>
           )}
 
-          <div className="bg-white border border-samgat-gray-lighter rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-samgat-black mb-4">
-              Método de pagamento
-            </h2>
-            <PaymentMethodSelector
-              value={selectedMethod}
-              onChange={setSelectedMethod}
-              disabled={currentPayment?.status !== 'PENDING'}
-            />
-          </div>
-
-          {/* Instruções de transferência */}
-          {isTransfer && currentPayment?.status !== 'PAID' && (
-            <PaymentTransferInstructions
-              orderId={order.id}
-              total={total}
-              formatKz={formatKz}
-            />
-          )}
-
-          {/* Método cartão/multicaixa — simulação */}
-          {!isTransfer && currentPayment?.status === 'PENDING' && (
-            <div className="bg-samgat-off-white border border-samgat-gray-lighter rounded-lg p-4">
-              <p className="text-xs text-samgat-gray-light mb-3">
-                💡 <strong>Modo teste:</strong> escolhe o que queres simular
-              </p>
-              <div className="flex gap-2">
-                <Button onClick={handlePay} isLoading={simulateWebhook.isPending} className="flex-1">
-                  Pagar Agora
-                </Button>
+          {isPaid ? (
+            <div className="bg-white border border-samgat-gray-lighter rounded-lg p-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-samgat-black text-white flex items-center justify-center mx-auto mb-4 text-2xl">
+                ✓
               </div>
-            </div>
-          )}
-
-          {/* Botão confirmar transferência */}
-          {isTransfer && !transferSubmitted && (
-            <Button
-              onClick={handleTransferSubmit}
-              size="lg"
-              className="w-full"
-              isLoading={createPayment.isPending}
-            >
-              Já enviei o comprovativo
-            </Button>
-          )}
-
-          {isTransfer && transferSubmitted && currentPayment?.status === 'PENDING' && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-              <p className="text-sm text-yellow-800">
-                <strong>⏳ Aguarda confirmação</strong>
+              <h2 className="text-xl font-bold text-samgat-black mb-2">Pagamento confirmado</h2>
+              <p className="text-sm text-samgat-gray-light mb-6">
+                O teu pedido foi confirmado com sucesso.
               </p>
-              <p className="text-xs text-yellow-700 mt-1">
-                Vamos confirmar o teu pagamento assim que recebermos o comprovativo.
-              </p>
+              <Link to={`/pedidos/${id}`}>
+                <Button>Ver Pedido</Button>
+              </Link>
             </div>
+          ) : (
+            <>
+              {currentPayment?.proofUrl ? (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-5 text-center">
+                  <p className="text-sm font-medium text-yellow-800 mb-2">
+                    ⏳ Aguarda confirmação
+                  </p>
+                  <p className="text-xs text-yellow-700">
+                    Recebemos o teu comprovativo. Vamos verificar e confirmar em breve.
+                  </p>
+                </div>
+              ) : (
+                <PaymentInstructions
+                  method={method}
+                  orderId={id}
+                  total={total}
+                  formatKz={formatKz}
+                  reference={reference}
+                  onFileSelect={handleFileSelect}
+                  isUploading={uploadProof.isPending}
+                  uploadedUrl={currentPayment?.proofUrl}
+                />
+              )}
+            </>
           )}
         </div>
 
         <div className="lg:col-span-1">
           <div className="bg-white border border-samgat-gray-lighter rounded-lg p-6 lg:sticky lg:top-24">
-            <h2 className="text-lg font-semibold text-samgat-black mb-4">
-              Resumo do Pedido
-            </h2>
+            <h2 className="text-lg font-semibold text-samgat-black mb-4">Resumo do Pedido</h2>
 
             <div className="space-y-3 mb-6 text-sm">
               <div className="flex justify-between text-samgat-gray">
@@ -282,19 +158,16 @@ export default function CheckoutPayment() {
               </div>
             </div>
 
-            {currentPayment?.status === 'PAID' && (
-              <Link to={`/pedidos/${id}`}>
-                <Button size="lg" className="w-full">Ver Pedido</Button>
-              </Link>
+            {currentPayment && (
+              <div className="mb-4">
+                <p className="text-xs text-samgat-gray-light uppercase mb-1">Estado</p>
+                <Badge variant={currentPayment.status === 'PAID' ? 'success' : currentPayment.status === 'FAILED' ? 'danger' : 'warning'}>
+                  {currentPayment.status === 'PAID' ? 'Pago' : currentPayment.status === 'FAILED' ? 'Falhou' : 'Pendente'}
+                </Badge>
+              </div>
             )}
 
-            {currentPayment?.status === 'FAILED' && (
-              <Button size="lg" className="w-full" onClick={handleRetry} isLoading={simulateWebhook.isPending}>
-                Tentar Novamente
-              </Button>
-            )}
-
-            <div className="mt-6 pt-6 border-t border-samgat-gray-lighter flex items-center gap-2 text-xs text-samgat-gray-light">
+            <div className="pt-4 border-t border-samgat-gray-lighter flex items-center gap-2 text-xs text-samgat-gray-light">
               <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>

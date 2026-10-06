@@ -22,7 +22,8 @@ export function usePaymentsByOrder(orderId: number | undefined) {
 export function useCreatePayment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (orderId: number) => paymentApi.create(orderId),
+    mutationFn: ({ orderId, method }: { orderId: number; method: 'transfer' | 'multicaixa' }) =>
+      paymentApi.create(orderId, method),
     onSuccess: (payment) => {
       queryClient.invalidateQueries({ queryKey: ['payments', 'order', payment.orderId] });
       queryClient.invalidateQueries({ queryKey: ['order', payment.orderId] });
@@ -33,19 +34,17 @@ export function useCreatePayment() {
   });
 }
 
-export function useSimulateWebhook() {
+export function useUploadProof() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ providerRef, status }: { providerRef: string; status: 'PAID' | 'FAILED' | 'REFUNDED' }) =>
-      paymentApi.simulateWebhook(providerRef, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['order'] });
-      toast.success('Webhook simulado');
+    mutationFn: ({ paymentId, file }: { paymentId: number; file: File }) =>
+      paymentApi.uploadProof(paymentId, file),
+    onSuccess: (payment) => {
+      queryClient.invalidateQueries({ queryKey: ['payments', 'order', payment.orderId] });
+      toast.success('Comprovativo anexado');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Erro ao simular webhook');
+      toast.error(error.response?.data?.message || 'Erro ao enviar comprovativo');
     },
   });
 }
