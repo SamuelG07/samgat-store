@@ -15,6 +15,10 @@ dotenv.config();
 
 const app = express();
 
+// Render usa proxy reverso — confiar no X-Forwarded-Proto
+// Sem isto, Express pensa que é HTTP e recusa enviar cookies com secure: true
+app.set('trust proxy', 1);
+
 // Compressão
 app.use(compression());
 
