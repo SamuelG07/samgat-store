@@ -1,4 +1,3 @@
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Link } from 'react-router-dom';
 import { Users, TrendingUp, Repeat } from 'lucide-react';
 
@@ -9,10 +8,7 @@ interface CustomerChartProps {
 }
 
 export default function CustomerChart({ growth, stats, isLoading }: CustomerChartProps) {
-  const chartData = growth.map((d) => ({
-    date: new Date(d.date).toLocaleDateString('pt-AO', { day: '2-digit', month: 'short' }),
-    novos: d.count,
-  }));
+  const maxCount = Math.max(...growth.map((d) => d.count), 1);
 
   return (
     <div className="bg-white border border-samgat-gray-lighter rounded-lg p-5">
@@ -45,19 +41,30 @@ export default function CustomerChart({ growth, stats, isLoading }: CustomerChar
 
       {isLoading ? (
         <div className="h-40 flex items-center justify-center text-sm text-samgat-gray-light">Carregando...</div>
-      ) : chartData.length === 0 ? (
-        <div className="h-40 flex items-center justify-center text-sm text-samgat-gray-light">Sem dados</div>
+      ) : growth.length === 0 ? (
+        <div className="h-40 flex items-center justify-center text-sm text-samgat-gray-light">Sem dados no período</div>
       ) : (
-        <div className="w-full h-40">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" vertical={false} />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#666' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#666' }} axisLine={false} tickLine={false} width={30} />
-              <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #E0E0E0', borderRadius: '8px', fontSize: '12px' }} />
-              <Line type="monotone" dataKey="novos" stroke="#000000" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="h-40 flex items-end gap-1 border-b border-samgat-gray-lighter pb-2 overflow-x-auto">
+          {growth.map((d, i) => {
+            const height = (d.count / maxCount) * 100;
+            const date = new Date(d.date);
+            const label = date.toLocaleDateString('pt-AO', { day: '2-digit', month: 'short' });
+
+            return (
+              <div key={i} className="flex-shrink-0 flex flex-col items-center gap-1 group" style={{ minWidth: '28px' }}>
+                <div className="relative w-full flex-1 flex items-end">
+                  <div
+                    className="w-full bg-samgat-black rounded-t hover:bg-samgat-dark transition-colors"
+                    style={{ height: `${Math.max(height, 3)}%` }}
+                  />
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-samgat-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                    {label}: {d.count}
+                  </div>
+                </div>
+                <span className="text-[9px] text-samgat-gray-light">{label.split(' ')[0]}</span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
