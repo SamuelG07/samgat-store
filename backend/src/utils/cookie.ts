@@ -12,13 +12,11 @@ export const setAuthCookies = (
     sameSite: config.cookie.sameSite,
   };
 
-  // Access token (curta duração)
   res.cookie('accessToken', accessToken, {
     ...cookieOptions,
-    maxAge: 15 * 60 * 1000, // 15 minutos
+    maxAge: 15 * 60 * 1000,
   });
 
-  // Refresh token (longa duração)
   res.cookie('refreshToken', refreshToken, {
     ...cookieOptions,
     maxAge: config.cookie.maxAge,

@@ -1,40 +1,62 @@
-import axios from 'axios';
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
+} from 'axios';
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  'http://localhost:3000/api';
+
+const api: AxiosInstance = axios.create({
+  baseURL: API_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+api.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    return config;
+  },
+  (error: AxiosError) => {
+    return Promise.reject(error);
+  }
+);
+
 let isRedirecting = false;
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // Sessão expirada ou não autenticado
-    if (error.response?.status === 401) {
-      const url = error.config?.url || '';
+  (error: AxiosError) => {
+    if (error.response?.status === 401 && !isRedirecting) {
+      const protectedPaths = [
+        '/admin',
+        '/carrinho',
+        '/pedidos',
+        '/perfil',
+        '/checkout',
+      ];
 
-      // Não redirecionar se já está em login/register ou se é /auth/me
-      const skipRedirect =
-        url.includes('/auth/me') ||
-        url.includes('/auth/login') ||
-        url.includes('/auth/register');
+      const currentPath = window.location.pathname;
 
-      if (!skipRedirect && !isRedirecting) {
+      const isProtected = protectedPaths.some((path) =>
+        currentPath.startsWith(path)
+      );
+
+      if (isProtected && currentPath !== '/login') {
         isRedirecting = true;
-        // Só redireciona se o usuário estava numa rota protegida
-        const protectedPaths = ['/carrinho', '/pedidos', '/admin'];
-        const isProtected = protectedPaths.some((p) => window.location.pathname.startsWith(p));
+        window.location.href = '/login';
 
-        if (isProtected) {
-          window.location.href = '/login';
-        }
-        setTimeout(() => { isRedirecting = false; }, 1000);
+        setTimeout(() => {
+          isRedirecting = false;
+        }, 1000);
       }
     }
+
     return Promise.reject(error);
   }
 );
+
+export default api;

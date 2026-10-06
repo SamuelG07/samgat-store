@@ -5,7 +5,7 @@ dotenv.config();
 // Parse CORS_ORIGIN como array (separado por vírgula)
 const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
   .split(',')
-  .map(o => o.trim());
+  .map((o) => o.trim());
 
 export const config = {
   port: parseInt(process.env.PORT || '5000', 10),
@@ -20,7 +20,7 @@ export const config = {
 
   cors: {
     origins: corsOrigins,
-    origin: corsOrigins[0], // compatibilidade
+    origin: corsOrigins[0],
   },
 
   jwt: {
@@ -44,10 +44,11 @@ export const config = {
   },
 
   cookie: {
-  secure: process.env.NODE_ENV === 'production',
-  httpOnly: true,
-  sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-},
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  },
+};
 
 export type Config = typeof config;
