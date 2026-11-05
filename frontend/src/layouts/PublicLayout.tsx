@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, FormEvent } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
   Store,
@@ -18,6 +18,7 @@ import {
   MapPin,
   Share2,
   MessageCircle,
+  Search,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -30,12 +31,25 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleLogout = async () => {
     await logout();
     toast.success('Sessão encerrada');
     navigate('/');
     setMobileOpen(false);
+  };
+
+  const handleSearch = (e: FormEvent) => {
+    e.preventDefault();
+    const term = searchTerm.trim();
+    if (term) {
+      navigate(`/produtos?search=${encodeURIComponent(term)}`);
+      setSearchTerm('');
+      setMobileSearchOpen(false);
+      setMobileOpen(false);
+    }
   };
 
   const navLinks = [
@@ -54,13 +68,29 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
     <div className="min-h-screen flex flex-col bg-white">
       <header className="sticky top-0 z-40 bg-white border-b border-samgat-gray-lighter">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center gap-2 text-xl font-bold text-samgat-black">
+          <div className="flex items-center justify-between h-16 gap-3">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2 text-xl font-bold text-samgat-black flex-shrink-0">
               <Store className="w-6 h-6" />
-              <span>Samgat Store</span>
+              <span className="hidden sm:inline">Samgat Store</span>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-6">
+            {/* Barra de pesquisa — Desktop */}
+            <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-samgat-gray-light pointer-events-none" />
+                <input
+                  type="search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Pesquisar produtos..."
+                  className="w-full pl-10 pr-4 py-2 border border-samgat-gray-lighter rounded-lg text-sm focus:outline-none focus:border-samgat-black bg-samgat-off-white focus:bg-white transition-colors"
+                />
+              </div>
+            </form>
+
+            {/* Nav links desktop */}
+            <nav className="hidden lg:flex items-center gap-5 flex-shrink-0">
               {navLinks.map((link) => (
                 <NavLink
                   key={link.to}
@@ -78,16 +108,26 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
               ))}
             </nav>
 
-            <div className="flex items-center gap-2 sm:gap-3">
+            {/* Right side */}
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              {/* Mobile search button */}
+              <button
+                onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+                className="md:hidden p-2 text-samgat-black"
+                aria-label="Pesquisar"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+
               <Link
                 to="/carrinho"
                 className="flex items-center gap-1.5 text-sm font-medium text-samgat-black hover:opacity-70 transition-opacity p-2"
               >
                 <ShoppingCart className="w-5 h-5" />
-                <span className="hidden sm:inline">Carrinho</span>
+                <span className="hidden lg:inline">Carrinho</span>
               </Link>
 
-              <div className="hidden md:flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-2 lg:gap-3">
                 {isAuthenticated ? (
                   <>
                     {isAdmin && (
@@ -95,19 +135,20 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                         to="/admin"
                         className="text-sm font-medium bg-samgat-black text-white px-3 py-1.5 rounded-lg hover:bg-samgat-dark transition-colors"
                       >
-                        Painel Admin
+                        Painel
                       </Link>
                     )}
-                    <div className="flex items-center gap-1.5 text-sm text-samgat-gray-light">
+                    <div className="hidden lg:flex items-center gap-1.5 text-sm text-samgat-gray-light">
                       <User className="w-4 h-4" />
-                      <span className="max-w-[120px] truncate">{user?.name}</span>
+                      <span className="max-w-[100px] truncate">{user?.name}</span>
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center gap-1.5 text-sm text-samgat-gray-light hover:text-samgat-black transition-colors"
+                      className="flex items-center gap-1.5 text-sm text-samgat-gray-light hover:text-samgat-black transition-colors p-2"
+                      title="Sair"
                     >
                       <LogOut className="w-4 h-4" />
-                      Sair
+                      <span className="hidden lg:inline">Sair</span>
                     </button>
                   </>
                 ) : (
@@ -117,14 +158,14 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                       className="flex items-center gap-1.5 text-sm font-medium text-samgat-black hover:opacity-70"
                     >
                       <LogIn className="w-4 h-4" />
-                      Entrar
+                      <span className="hidden lg:inline">Entrar</span>
                     </Link>
                     <Link
                       to="/register"
-                      className="flex items-center gap-1.5 text-sm font-medium bg-samgat-black text-white px-4 py-2 rounded-lg hover:bg-samgat-dark transition-colors"
+                      className="flex items-center gap-1.5 text-sm font-medium bg-samgat-black text-white px-3 py-2 rounded-lg hover:bg-samgat-dark transition-colors"
                     >
                       <UserPlus className="w-4 h-4" />
-                      Criar Conta
+                      <span className="hidden lg:inline">Criar Conta</span>
                     </Link>
                   </>
                 )}
@@ -132,17 +173,43 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
 
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="md:hidden text-samgat-black p-2"
+                className="lg:hidden text-samgat-black p-2"
                 aria-label="Menu"
               >
                 {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
+
+          {/* Mobile search — expande */}
+          {mobileSearchOpen && (
+            <div className="md:hidden pb-3">
+              <form onSubmit={handleSearch} className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-samgat-gray-light pointer-events-none" />
+                <input
+                  type="search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Pesquisar produtos..."
+                  autoFocus
+                  className="w-full pl-10 pr-10 py-2 border border-samgat-gray-lighter rounded-lg text-sm focus:outline-none focus:border-samgat-black"
+                />
+                <button
+                  type="button"
+                  onClick={() => setMobileSearchOpen(false)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-samgat-gray-light"
+                  aria-label="Fechar pesquisa"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </form>
+            </div>
+          )}
         </div>
 
+        {/* Mobile menu */}
         {mobileOpen && (
-          <div className="md:hidden border-t border-samgat-gray-lighter bg-white">
+          <div className="lg:hidden border-t border-samgat-gray-lighter bg-white">
             <nav className="px-4 py-4 space-y-2">
               {navLinks.map((link) => (
                 <NavLink
