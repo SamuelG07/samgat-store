@@ -11,21 +11,22 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative bg-samgat-black text-white overflow-hidden">
-        {/* Foto de escritório com equipamentos eletrónicos */}
+      <section className="relative bg-samgat-dark text-white overflow-hidden">
+        {/* Foto de loja de eletrónica com smartphones na mesa */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: 'url(https://plus.unsplash.com/premium_photo-1661963460834-aa691e272ad9?w=1920&auto=format&fit=crop&q=80)',
+            backgroundImage: 'url(https://previews.123rf.com/images/bodnarphoto/bodnarphoto1803/bodnarphoto180300249/98219436-many-smartphones-are-on-the-table-in-the-technology-store-buying-a-mobile-phone-at-the-electronics.jpg)',
+            backgroundColor: '#1A1A1A',
           }}
           aria-hidden="true"
         />
 
-        {/* Overlay escuro para legibilidade */}
-        <div className="absolute inset-0 bg-black/75" />
+        {/* Overlay MAIS CLARO — 50% em vez de 75% */}
+        <div className="absolute inset-0 bg-black/50" />
 
-        {/* Gradiente — mais escuro à esquerda onde está o texto */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/30" />
+        {/* Gradiente suave — escuro só à esquerda */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
 
         {/* Conteúdo */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
