@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useProduct } from '../hooks/useProducts';
 import { useAuth } from '../contexts/AuthContext';
 import { useAddToCart } from '../hooks/useCart';
+import { useProductReviews } from '../hooks/useReviews';
 import Button from '../components/ui/Button';
 import Skeleton from '../components/ui/Skeleton';
 import ErrorState from '../components/ui/ErrorState';
 import Badge from '../components/ui/Badge';
+import ReviewList from '../components/reviews/ReviewList';
+import ReviewForm from '../components/reviews/ReviewForm';
 import { formatKz } from '../utils/format';
 
 export default function ProductDetails() {
@@ -18,6 +22,7 @@ export default function ProductDetails() {
 
   const productId = Number(id);
   const { data: product, isLoading, isError, refetch } = useProduct(productId);
+  const { data: reviewsData } = useProductReviews(productId, 1, 1);
   const addToCart = useAddToCart();
 
   const handleAddToCart = () => {
@@ -26,7 +31,6 @@ export default function ProductDetails() {
       navigate('/login', { state: { from: { pathname: `/produtos/${id}` } } });
       return;
     }
-
     addToCart.mutate({ productId, quantity });
   };
 
@@ -79,10 +83,21 @@ export default function ProductDetails() {
 
         {/* Detalhes */}
         <div>
-          <div className="mb-4">
+          <div className="mb-4 flex items-center gap-3 flex-wrap">
             <Badge variant={product.is_active ? 'dark' : 'danger'}>
               {product.is_active ? 'Disponível' : 'Indisponível'}
             </Badge>
+            {reviewsData && reviewsData.stats.total > 0 && (
+              <div className="flex items-center gap-1.5 text-sm">
+                <Star className="w-4 h-4 fill-samgat-black text-samgat-black" />
+                <span className="font-medium text-samgat-black">
+                  {reviewsData.stats.average.toFixed(1)}
+                </span>
+                <span className="text-samgat-gray-light">
+                  ({reviewsData.stats.total})
+                </span>
+              </div>
+            )}
           </div>
 
           <h1 className="text-3xl md:text-4xl font-bold text-samgat-black mb-4">
@@ -99,7 +114,6 @@ export default function ProductDetails() {
             </p>
           )}
 
-          {/* Quantidade */}
           {product.is_active && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-samgat-black mb-2">
@@ -125,7 +139,6 @@ export default function ProductDetails() {
             </div>
           )}
 
-          {/* Ações */}
           <div className="space-y-3">
             <Button
               size="lg"
@@ -145,6 +158,35 @@ export default function ProductDetails() {
           </div>
         </div>
       </div>
+
+      {/* ============ REVIEWS ============ */}
+      <section className="mt-16">
+        <h2 className="text-2xl font-bold text-samgat-black mb-6">
+          Avaliações
+        </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <ReviewList productId={product.id} />
+          </div>
+
+          <div className="lg:col-span-1">
+            {isAuthenticated ? (
+              <ReviewForm productId={product.id} />
+            ) : (
+              <div className="bg-samgat-off-white border border-samgat-gray-lighter rounded-lg p-6 text-center">
+                <Star className="w-8 h-8 mx-auto mb-3 text-samgat-gray-lighter" />
+                <p className="text-sm text-samgat-gray-light mb-4">
+                  Faz login para avaliar este produto.
+                </p>
+                <Link to="/login">
+                  <Button size="sm">Entrar</Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
