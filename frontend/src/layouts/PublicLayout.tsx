@@ -16,8 +16,8 @@ import {
   Phone,
   Mail,
   MapPin,
-  Facebook,
-  Instagram,
+  Share2,
+  MessageCircle,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -55,13 +55,11 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
       <header className="sticky top-0 z-40 bg-white border-b border-samgat-gray-lighter">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
             <Link to="/" className="flex items-center gap-2 text-xl font-bold text-samgat-black">
               <Store className="w-6 h-6" />
               <span>Samgat Store</span>
             </Link>
 
-            {/* Desktop nav */}
             <nav className="hidden md:flex items-center gap-6">
               {navLinks.map((link) => (
                 <NavLink
@@ -80,7 +78,6 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
               ))}
             </nav>
 
-            {/* Right side */}
             <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 to="/carrinho"
@@ -144,7 +141,6 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
           </div>
         </div>
 
-        {/* Mobile menu */}
         {mobileOpen && (
           <div className="md:hidden border-t border-samgat-gray-lighter bg-white">
             <nav className="px-4 py-4 space-y-2">
@@ -217,7 +213,6 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
 
       <main className="flex-1">{children}</main>
 
-      {/* Footer */}
       <footer className="bg-samgat-black text-white mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -272,11 +267,11 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                 </li>
               </ul>
               <div className="flex gap-3 mt-4">
-                <a href="#" className="hover:text-white transition-colors" aria-label="Facebook">
-                  <Facebook className="w-5 h-5" />
+                <a href="#" className="hover:text-white transition-colors" aria-label="Partilhar">
+                  <Share2 className="w-5 h-5" />
                 </a>
-                <a href="#" className="hover:text-white transition-colors" aria-label="Instagram">
-                  <Instagram className="w-5 h-5" />
+                <a href="#" className="hover:text-white transition-colors" aria-label="WhatsApp">
+                  <MessageCircle className="w-5 h-5" />
                 </a>
               </div>
             </div>
