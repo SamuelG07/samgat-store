@@ -1,41 +1,20 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  Package,
-  Tags,
-  Warehouse,
-  ShoppingBag,
-  CreditCard,
-  Users,
-  Shield,
-  ArrowLeftRight,
-  Store,
-  LogOut,
-  Star,
+  LayoutDashboard, Package, Tags, Warehouse, ShoppingBag,
+  CreditCard, Users, Shield, ArrowLeftRight, Store, LogOut, Star,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useNotifications } from '../../../hooks/admin/useNotifications';
 
 interface AdminSidebarProps {
   onNavigate?: () => void;
 }
 
-const navItems = [
-  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/admin/products', label: 'Produtos', icon: Package },
-  { to: '/admin/categories', label: 'Categorias', icon: Tags },
-  { to: '/admin/inventory', label: 'Stock', icon: Warehouse },
-  { to: '/admin/orders', label: 'Pedidos', icon: ShoppingBag },
-  { to: '/admin/payments', label: 'Pagamentos', icon: CreditCard },
-  { to: '/admin/reviews', label: 'Reviews', icon: Star },
-  { to: '/admin/customers', label: 'Clientes', icon: Users },
-  { to: '/admin/admins', label: 'Administradores', icon: Shield },
-  { to: '/admin/stock-movements', label: 'Movimentações', icon: ArrowLeftRight },
-];
-
 export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { data: notif } = useNotifications();
 
   const handleLogout = async () => {
     try {
@@ -46,6 +25,19 @@ export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
       toast.error('Erro ao fazer logout');
     }
   };
+
+  const navItems = [
+    { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true, badge: 0 },
+    { to: '/admin/products', label: 'Produtos', icon: Package, badge: 0 },
+    { to: '/admin/categories', label: 'Categorias', icon: Tags, badge: 0 },
+    { to: '/admin/inventory', label: 'Stock', icon: Warehouse, badge: notif?.lowStock || 0 },
+    { to: '/admin/orders', label: 'Pedidos', icon: ShoppingBag, badge: notif?.pendingOrders || 0 },
+    { to: '/admin/payments', label: 'Pagamentos', icon: CreditCard, badge: notif?.pendingPayments || 0 },
+    { to: '/admin/reviews', label: 'Reviews', icon: Star, badge: 0 },
+    { to: '/admin/customers', label: 'Clientes', icon: Users, badge: 0 },
+    { to: '/admin/admins', label: 'Administradores', icon: Shield, badge: 0 },
+    { to: '/admin/stock-movements', label: 'Movimentações', icon: ArrowLeftRight, badge: 0 },
+  ];
 
   return (
     <div className="flex flex-col h-full bg-samgat-black text-white">
@@ -79,7 +71,12 @@ export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
               }
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">{item.label}</span>
+              <span className="truncate flex-1">{item.label}</span>
+              {item.badge > 0 && (
+                <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                  {item.badge > 99 ? '99+' : item.badge}
+                </span>
+              )}
             </NavLink>
           );
         })}

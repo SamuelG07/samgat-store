@@ -9,6 +9,7 @@ import paymentRoutes from './paymentRoutes';
 import reviewRoutes from './reviewRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import adminRoutes from './adminRoutes';
+import notificationRoutes from './notificationRoutes';
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.use('/orders', orderRoutes);
 router.use('/payments', paymentRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/admin/analytics', analyticsRoutes);
+router.use('/admin/notifications', notificationRoutes);
 router.use('/admin', adminRoutes);
 
 export default router;
