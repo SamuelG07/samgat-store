@@ -11,13 +11,32 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-samgat-black text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+      <section className="relative bg-samgat-black text-white overflow-hidden">
+        {/* Foto de escritório com equipamentos eletrónicos */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: 'url(https://plus.unsplash.com/premium_photo-1661963460834-aa691e272ad9?w=1920&auto=format&fit=crop&q=80)',
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Overlay escuro para legibilidade */}
+        <div className="absolute inset-0 bg-black/75" />
+
+        {/* Gradiente — mais escuro à esquerda onde está o texto */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/30" />
+
+        {/* Conteúdo */}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <div className="max-w-2xl">
+            <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-samgat-gray-lighter mb-4">
+              Samgat Store · Angola
+            </p>
             <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
               A sua loja virtual em Angola
             </h1>
-            <p className="text-lg md:text-xl text-samgat-gray-lighter mb-8">
+            <p className="text-lg md:text-xl text-samgat-gray-lighter mb-8 leading-relaxed">
               Produtos selecionados, compra segura e entrega em todo o país.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -29,7 +48,7 @@ export default function Home() {
               </Link>
               <Link
                 to="/categorias"
-                className="border border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-samgat-black transition-colors"
+                className="border border-white/60 text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-samgat-black transition-colors backdrop-blur-sm"
               >
                 Ver Categorias
               </Link>
