@@ -1,4 +1,18 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Package,
+  Tags,
+  Warehouse,
+  ShoppingBag,
+  CreditCard,
+  Users,
+  Shield,
+  ArrowLeftRight,
+  Store,
+  LogOut,
+  X,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -7,15 +21,15 @@ interface AdminSidebarProps {
 }
 
 const navItems = [
-  { to: '/admin', label: 'Dashboard', end: true },
-  { to: '/admin/products', label: 'Produtos' },
-  { to: '/admin/categories', label: 'Categorias' },
-  { to: '/admin/inventory', label: 'Stock' },
-  { to: '/admin/orders', label: 'Pedidos' },
-  { to: '/admin/payments', label: 'Pagamentos' },
-  { to: '/admin/customers', label: 'Clientes' },
-  { to: '/admin/admins', label: 'Administradores' },
-  { to: '/admin/stock-movements', label: 'Movimentações' },
+  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/admin/products', label: 'Produtos', icon: Package },
+  { to: '/admin/categories', label: 'Categorias', icon: Tags },
+  { to: '/admin/inventory', label: 'Stock', icon: Warehouse },
+  { to: '/admin/orders', label: 'Pedidos', icon: ShoppingBag },
+  { to: '/admin/payments', label: 'Pagamentos', icon: CreditCard },
+  { to: '/admin/customers', label: 'Clientes', icon: Users },
+  { to: '/admin/admins', label: 'Administradores', icon: Shield },
+  { to: '/admin/stock-movements', label: 'Movimentações', icon: ArrowLeftRight },
 ];
 
 export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
@@ -39,38 +53,43 @@ export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
         onClick={onNavigate}
         className="p-6 border-b border-samgat-gray flex-shrink-0 block hover:bg-samgat-dark transition-colors"
       >
-        <h1 className="text-xl font-bold">Samgat Store</h1>
+        <div className="flex items-center gap-2">
+          <Store className="w-5 h-5" />
+          <h1 className="text-xl font-bold">Samgat Store</h1>
+        </div>
         <p className="text-xs text-samgat-gray-lighter mt-1">Painel Administrativo</p>
       </Link>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              `block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-white text-samgat-black'
-                  : 'text-samgat-gray-lighter hover:bg-samgat-dark hover:text-white'
-              }`
-            }
-          >
-            {item.label}
-          </NavLink>
-        ))}
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              onClick={onNavigate}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-white text-samgat-black'
+                    : 'text-samgat-gray-lighter hover:bg-samgat-dark hover:text-white'
+                }`
+              }
+            >
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">{item.label}</span>
+            </NavLink>
+          );
+        })}
 
         <div className="pt-3 mt-3 border-t border-samgat-gray">
           <Link
             to="/"
             onClick={onNavigate}
-            className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-samgat-gray-lighter hover:bg-samgat-dark hover:text-white transition-colors"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-samgat-gray-lighter hover:bg-samgat-dark hover:text-white transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
+            <Store className="w-4 h-4 flex-shrink-0" />
             Ir para a Loja
           </Link>
         </div>
@@ -83,8 +102,9 @@ export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
         </div>
         <button
           onClick={handleLogout}
-          className="w-full bg-samgat-dark text-white text-sm py-2 rounded-lg hover:bg-samgat-gray transition-colors"
+          className="flex items-center justify-center gap-2 w-full bg-samgat-dark text-white text-sm py-2 rounded-lg hover:bg-samgat-gray transition-colors"
         >
+          <LogOut className="w-4 h-4" />
           Sair
         </button>
       </div>

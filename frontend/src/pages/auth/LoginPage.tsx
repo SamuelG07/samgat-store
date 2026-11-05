@@ -1,9 +1,8 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -12,9 +11,9 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Se veio de uma rota protegida, volta para lá. Senão, vai para a home.
   const from = (location.state as any)?.from?.pathname || '/';
 
   const handleSubmit = async (e: FormEvent) => {
@@ -22,16 +21,11 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const user = await login(email, password) as any;
+      await login(email, password);
       toast.success('Login realizado com sucesso!');
-
-      // Se veio de uma rota protegida, volta para lá.
-      // Senão, vai para a home (funciona para CUSTOMER e ADMIN).
       navigate(from, { replace: true });
     } catch (error: any) {
-      const message =
-        error.response?.data?.message || 'Email ou senha incorretos.';
-      toast.error(message);
+      toast.error(error.response?.data?.message || 'Email ou senha incorretos.');
     } finally {
       setIsLoading(false);
     }
@@ -49,29 +43,58 @@ export default function LoginPage() {
 
         <div className="bg-white rounded-lg shadow-sm border border-samgat-gray-lighter p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
-            <Input
-              label="Email"
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-            />
+            <div>
+              <label className="block text-sm font-medium text-samgat-black mb-1.5">
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-samgat-gray-light" />
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="w-full pl-10 pr-4 py-2.5 border border-samgat-gray-lighter rounded-lg text-sm focus:outline-none focus:border-samgat-black"
+                />
+              </div>
+            </div>
 
-            <Input
-              label="Senha"
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
+            <div>
+              <label className="block text-sm font-medium text-samgat-black mb-1.5">
+                Senha
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-samgat-gray-light" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-10 py-2.5 border border-samgat-gray-lighter rounded-lg text-sm focus:outline-none focus:border-samgat-black"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-samgat-gray-light hover:text-samgat-black"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
 
-            <Button type="submit" size="lg" className="w-full" isLoading={isLoading}>
-              Entrar
-            </Button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex items-center justify-center gap-2 w-full bg-samgat-black text-white py-2.5 rounded-lg font-medium hover:bg-samgat-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <LogIn className="w-4 h-4" />
+              {isLoading ? 'A entrar...' : 'Entrar'}
+            </button>
           </form>
 
           <div className="mt-6 text-center text-sm text-samgat-gray-light">
