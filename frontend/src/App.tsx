@@ -25,6 +25,7 @@ import AdminInventory from './pages/admin/AdminInventory';
 import AdminStockMovements from './pages/admin/AdminStockMovements';
 import AdminCategories from './pages/admin/AdminCategories';
 import AdminPendingPayments from './pages/admin/AdminPendingPayments';
+import AdminReviews from './pages/admin/AdminReviews';
 
 const publicRoute = (element: React.ReactNode) => <PublicLayout>{element}</PublicLayout>;
 
@@ -55,6 +56,7 @@ function App() {
 
         {/* Protegidas (cliente) */}
 	<Route path="/admin/payments" element={adminRoute(<AdminPendingPayments />)} />
+        <Route path="/admin/reviews" element={adminRoute(<AdminReviews />)} />
         <Route path="/carrinho" element={protectedPublicRoute(<Cart />)} />
         <Route path="/pedidos" element={protectedPublicRoute(<Orders />)} />
         <Route path="/pedidos/:id" element={protectedPublicRoute(<OrderDetails />)} />

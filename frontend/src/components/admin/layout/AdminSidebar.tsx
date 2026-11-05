@@ -11,7 +11,7 @@ import {
   ArrowLeftRight,
   Store,
   LogOut,
-  X,
+  Star,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -27,6 +27,7 @@ const navItems = [
   { to: '/admin/inventory', label: 'Stock', icon: Warehouse },
   { to: '/admin/orders', label: 'Pedidos', icon: ShoppingBag },
   { to: '/admin/payments', label: 'Pagamentos', icon: CreditCard },
+  { to: '/admin/reviews', label: 'Reviews', icon: Star },
   { to: '/admin/customers', label: 'Clientes', icon: Users },
   { to: '/admin/admins', label: 'Administradores', icon: Shield },
   { to: '/admin/stock-movements', label: 'Movimentações', icon: ArrowLeftRight },
