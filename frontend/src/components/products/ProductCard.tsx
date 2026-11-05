@@ -1,8 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Check, Loader2 } from 'lucide-react';
+import { Plus, Check, Loader2, Heart } from 'lucide-react';
 import { Product } from '../../types/store';
 import { useAddToCart } from '../../hooks/useCart';
 import { useAuth } from '../../contexts/AuthContext';
+import { useWishlist } from '../../hooks/useWishlist';
 import { formatKz } from '../../utils/format';
 import toast from 'react-hot-toast';
 
@@ -10,18 +11,25 @@ export default function ProductCard({ product }: { product: Product }) {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const addToCart = useAddToCart();
+  const wishlist = useWishlist();
+  const inWishlist = wishlist.has(product.id);
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     if (!isAuthenticated) {
       toast.error('Faça login para adicionar ao carrinho');
       navigate('/login', { state: { from: { pathname: '/produtos' } } });
       return;
     }
-
     addToCart.mutate({ productId: product.id, quantity: 1 });
+  };
+
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    wishlist.toggle(product.id);
+    toast.success(inWishlist ? 'Removido dos favoritos' : 'Adicionado aos favoritos');
   };
 
   return (
@@ -42,7 +50,21 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         )}
 
-        {/* Botão + de quick add */}
+        {/* Wishlist */}
+        <button
+          onClick={handleWishlist}
+          className="absolute top-2 right-2 w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-sm hover:bg-white transition-all z-10"
+          aria-label="Favorito"
+          title={inWishlist ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+        >
+          <Heart
+            className={`w-4 h-4 transition-colors ${
+              inWishlist ? 'fill-red-500 text-red-500' : 'text-samgat-gray-light'
+            }`}
+          />
+        </button>
+
+        {/* Quick add */}
         {product.is_active && (
           <button
             onClick={handleQuickAdd}
@@ -51,13 +73,7 @@ export default function ProductCard({ product }: { product: Product }) {
             aria-label="Adicionar ao carrinho"
             title="Adicionar ao carrinho"
           >
-            {addToCart.isPending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : addToCart.isSuccess ? (
-              <Check className="w-5 h-5" />
-            ) : (
-              <Plus className="w-5 h-5" />
-            )}
+            {addToCart.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : addToCart.isSuccess ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
           </button>
         )}
       </div>

@@ -8,6 +8,7 @@ import AdminLayout from './layouts/AdminLayout';
 import LoginPage from './pages/auth/LoginPage';
 import Register from './pages/Register';
 import Home from './pages/Home';
+import Wishlist from './pages/Wishlist';
 import Categories from './pages/Categories';
 import Products from './pages/Products';
 import ProductDetails from './pages/ProductDetails';
@@ -53,6 +54,7 @@ function App() {
         <Route path="/categorias" element={publicRoute(<Categories />)} />
         <Route path="/produtos" element={publicRoute(<Products />)} />
         <Route path="/produtos/:id" element={publicRoute(<ProductDetails />)} />
+        <Route path="/wishlist" element={publicRoute(<Wishlist />)} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<Register />} />
 

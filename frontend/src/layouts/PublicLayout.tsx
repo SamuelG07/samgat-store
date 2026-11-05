@@ -3,9 +3,10 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
   Store, Home, Package, LayoutGrid, ShoppingBag, ShoppingCart,
   LogIn, UserPlus, LogOut, Menu, X, User, Phone, Mail, MapPin,
-  Share2, MessageCircle, Search,
+  Share2, MessageCircle, Search, Heart,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useWishlist } from '../hooks/useWishlist';
 import toast from 'react-hot-toast';
 
 interface PublicLayoutProps {
