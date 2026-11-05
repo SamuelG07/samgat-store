@@ -191,6 +191,17 @@ export class AdminController {
       next(error);
     }
   }
+
+  async uploadImage(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.file) {
+        throw new AppError({ message: 'Nenhum ficheiro enviado', statusCode: 400, code: 'NO_FILE' });
+      }
+      const result = await adminService.uploadImage(req.file.buffer, 'samgat/products');
+      res.status(200).json({ success: true, data: result });
+    } catch (error) { next(error); }
+  }
+
 }
 
 export const adminController = new AdminController();

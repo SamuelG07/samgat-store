@@ -1,24 +1,9 @@
 import { ReactNode, useState, FormEvent } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
-  Store,
-  Home,
-  Package,
-  LayoutGrid,
-  ShoppingBag,
-  ShoppingCart,
-  LogIn,
-  UserPlus,
-  LogOut,
-  Menu,
-  X,
-  User,
-  Phone,
-  Mail,
-  MapPin,
-  Share2,
-  MessageCircle,
-  Search,
+  Store, Home, Package, LayoutGrid, ShoppingBag, ShoppingCart,
+  LogIn, UserPlus, LogOut, Menu, X, User, Phone, Mail, MapPin,
+  Share2, MessageCircle, Search,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -31,7 +16,6 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleLogout = async () => {
@@ -47,7 +31,6 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
     if (term) {
       navigate(`/produtos?search=${encodeURIComponent(term)}`);
       setSearchTerm('');
-      setMobileSearchOpen(false);
       setMobileOpen(false);
     }
   };
@@ -67,6 +50,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <header className="sticky top-0 z-40 bg-white border-b border-samgat-gray-lighter">
+        {/* ===== LINHA 1 — Logo + Nav + User ===== */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 gap-3">
             {/* Logo */}
@@ -75,22 +59,8 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
               <span className="hidden sm:inline">Samgat Store</span>
             </Link>
 
-            {/* Barra de pesquisa — Desktop */}
-            <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-samgat-gray-light pointer-events-none" />
-                <input
-                  type="search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Pesquisar produtos..."
-                  className="w-full pl-10 pr-4 py-2 border border-samgat-gray-lighter rounded-lg text-sm focus:outline-none focus:border-samgat-black bg-samgat-off-white focus:bg-white transition-colors"
-                />
-              </div>
-            </form>
-
             {/* Nav links desktop */}
-            <nav className="hidden lg:flex items-center gap-5 flex-shrink-0">
+            <nav className="hidden lg:flex items-center gap-5 flex-1 justify-center">
               {navLinks.map((link) => (
                 <NavLink
                   key={link.to}
@@ -110,15 +80,6 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
 
             {/* Right side */}
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              {/* Mobile search button */}
-              <button
-                onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-                className="md:hidden p-2 text-samgat-black"
-                aria-label="Pesquisar"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-
               <Link
                 to="/carrinho"
                 className="flex items-center gap-1.5 text-sm font-medium text-samgat-black hover:opacity-70 transition-opacity p-2"
@@ -153,10 +114,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                   </>
                 ) : (
                   <>
-                    <Link
-                      to="/login"
-                      className="flex items-center gap-1.5 text-sm font-medium text-samgat-black hover:opacity-70"
-                    >
+                    <Link to="/login" className="flex items-center gap-1.5 text-sm font-medium text-samgat-black hover:opacity-70">
                       <LogIn className="w-4 h-4" />
                       <span className="hidden lg:inline">Entrar</span>
                     </Link>
@@ -180,31 +138,28 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Mobile search — expande */}
-          {mobileSearchOpen && (
-            <div className="md:hidden pb-3">
-              <form onSubmit={handleSearch} className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-samgat-gray-light pointer-events-none" />
-                <input
-                  type="search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Pesquisar produtos..."
-                  autoFocus
-                  className="w-full pl-10 pr-10 py-2 border border-samgat-gray-lighter rounded-lg text-sm focus:outline-none focus:border-samgat-black"
-                />
-                <button
-                  type="button"
-                  onClick={() => setMobileSearchOpen(false)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-samgat-gray-light"
-                  aria-label="Fechar pesquisa"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </form>
-            </div>
-          )}
+        {/* ===== LINHA 2 — BARRA DE PESQUISA (full width) ===== */}
+        <div className="border-t border-samgat-gray-lighter bg-samgat-off-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <form onSubmit={handleSearch} className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-samgat-gray-light pointer-events-none" />
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Pesquisar produtos, categorias..."
+                className="w-full pl-12 pr-28 py-2.5 sm:py-3 border border-samgat-gray-lighter rounded-lg text-sm sm:text-base focus:outline-none focus:border-samgat-black bg-white transition-colors"
+              />
+              <button
+                type="submit"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-samgat-black text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium hover:bg-samgat-dark transition-colors"
+              >
+                Pesquisar
+              </button>
+            </form>
+          </div>
         </div>
 
         {/* Mobile menu */}
@@ -296,50 +251,22 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             <div>
               <h4 className="text-sm font-semibold mb-3">Navegação</h4>
               <ul className="space-y-2 text-sm text-samgat-gray-lighter">
-                <li>
-                  <Link to="/" className="flex items-center gap-2 hover:text-white transition-colors">
-                    <Home className="w-3.5 h-3.5" />
-                    Início
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/produtos" className="flex items-center gap-2 hover:text-white transition-colors">
-                    <ShoppingBag className="w-3.5 h-3.5" />
-                    Produtos
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/categorias" className="flex items-center gap-2 hover:text-white transition-colors">
-                    <LayoutGrid className="w-3.5 h-3.5" />
-                    Categorias
-                  </Link>
-                </li>
+                <li><Link to="/" className="flex items-center gap-2 hover:text-white transition-colors"><Home className="w-3.5 h-3.5" />Início</Link></li>
+                <li><Link to="/produtos" className="flex items-center gap-2 hover:text-white transition-colors"><ShoppingBag className="w-3.5 h-3.5" />Produtos</Link></li>
+                <li><Link to="/categorias" className="flex items-center gap-2 hover:text-white transition-colors"><LayoutGrid className="w-3.5 h-3.5" />Categorias</Link></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-sm font-semibold mb-3">Contacto</h4>
               <ul className="space-y-2 text-sm text-samgat-gray-lighter">
-                <li className="flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>+244 923 000 000</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Mail className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>info@samgatstore.com</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>Luanda, Angola</span>
-                </li>
+                <li className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 flex-shrink-0" /><span>+244 923 000 000</span></li>
+                <li className="flex items-center gap-2"><Mail className="w-3.5 h-3.5 flex-shrink-0" /><span>info@samgatstore.com</span></li>
+                <li className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 flex-shrink-0" /><span>Luanda, Angola</span></li>
               </ul>
               <div className="flex gap-3 mt-4">
-                <a href="#" className="hover:text-white transition-colors" aria-label="Partilhar">
-                  <Share2 className="w-5 h-5" />
-                </a>
-                <a href="#" className="hover:text-white transition-colors" aria-label="WhatsApp">
-                  <MessageCircle className="w-5 h-5" />
-                </a>
+                <a href="#" className="hover:text-white transition-colors" aria-label="Partilhar"><Share2 className="w-5 h-5" /></a>
+                <a href="#" className="hover:text-white transition-colors" aria-label="WhatsApp"><MessageCircle className="w-5 h-5" /></a>
               </div>
             </div>
           </div>

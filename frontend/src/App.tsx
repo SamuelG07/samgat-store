@@ -1,5 +1,6 @@
 import CheckoutPayment from './pages/CheckoutPayment';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import PublicLayout from './layouts/PublicLayout';
@@ -43,7 +44,8 @@ const adminRoute = (element: React.ReactNode) => (
 
 function App() {
   return (
-    <AuthProvider>
+    <HelmetProvider>
+      <AuthProvider>
       <Routes>
         {/* Público */}
 	<Route path="/checkout/pagamento/:orderId" element={protectedPublicRoute(<CheckoutPayment />)} />
@@ -77,6 +79,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
+    </HelmetProvider>
   );
 }
 

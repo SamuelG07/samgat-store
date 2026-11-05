@@ -12,6 +12,7 @@ import ErrorState from '../../components/admin/ErrorState';
 import EmptyState from '../../components/admin/EmptyState';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import ImageUpload from '../../components/admin/ui/ImageUpload';
 
 interface ProductForm {
   id?: number;
@@ -307,12 +308,9 @@ export default function AdminProducts() {
                 </select>
               </div>
 
-              <Input
-                label="URL da Imagem"
-                type="url"
+              <ImageUpload
                 value={modal.imageUrl}
-                onChange={(e) => setModal({ ...modal, imageUrl: e.target.value })}
-                placeholder="https://exemplo.com/imagem.jpg"
+                onChange={(url) => setModal({ ...modal, imageUrl: url })}
               />
 
               {/* Stock: criação = editável | edição = leitura */}

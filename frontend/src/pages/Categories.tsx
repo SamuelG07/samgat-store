@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useCategories } from '../hooks/useCategories';
+import SEO from '../components/seo/SEO';
 import Skeleton from '../components/ui/Skeleton';
 import ErrorState from '../components/ui/ErrorState';
 

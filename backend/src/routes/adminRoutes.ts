@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { adminController } from '../controllers/adminController';
 import { authenticate } from '../middleware/authMiddleware';
 import { requireRole } from '../middleware/roleMiddleware';
+import { uploadProof } from '../middleware/upload';
 
 const router = Router();
 
@@ -11,6 +12,7 @@ router.use(requireRole('ADMIN'));
 
 // ===== DASHBOARD =====
 router.get('/dashboard', adminController.getDashboard.bind(adminController));
+router.post('/upload', uploadProof, adminController.uploadImage.bind(adminController));
 
 // ===== PRODUCTS =====
 router.get('/products', adminController.getProducts.bind(adminController));

@@ -5,6 +5,7 @@ import { inventoryRepository } from '../repositories/inventoryRepository';
 import { orderRepository } from '../repositories/orderRepository';
 import { AppError } from '../utils/errorHandler';
 import { adminConfig, isValidStatusTransition, nonCancellableStatuses } from '../config/admin';
+import { uploadToCloudinary } from '../config/cloudinary';
 import {
   AdminProductQuery,
   AdminOrderQuery,
@@ -647,6 +648,12 @@ export class AdminService {
 
     return user;
   }
+
+  async uploadImage(fileBuffer: Buffer, folder: string = 'samgat/products') {
+    const { secure_url } = await uploadToCloudinary(fileBuffer, folder);
+    return { url: secure_url };
+  }
+
 }
 
 export const adminService = new AdminService();

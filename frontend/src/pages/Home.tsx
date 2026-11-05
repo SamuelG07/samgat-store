@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import SEO from '../components/seo/SEO';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import ProductCard from '../components/products/ProductCard';

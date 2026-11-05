@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SEO from '../components/seo/SEO';
 import { useSearchParams } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';

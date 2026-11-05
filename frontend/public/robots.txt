@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://samgat-store.onrender.com/sitemap.xml

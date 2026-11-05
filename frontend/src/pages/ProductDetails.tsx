@@ -13,6 +13,7 @@ import Badge from '../components/ui/Badge';
 import ReviewList from '../components/reviews/ReviewList';
 import ReviewForm from '../components/reviews/ReviewForm';
 import { formatKz } from '../utils/format';
+import SEO from '../components/seo/SEO';
 
 export default function ProductDetails() {
   const { id } = useParams();
